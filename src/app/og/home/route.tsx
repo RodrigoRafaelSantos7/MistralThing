@@ -80,7 +80,7 @@ export async function GET(request: Request) {
         <h1
           style={{
             fontSize: 48,
-            color: "#fff",
+            color: "#efefef",
             margin: 0,
             lineHeight: 1.2,
             wordBreak: "break-word",
