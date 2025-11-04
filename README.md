@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://github.com/RodrigoRafaelSantos7/MistralThing">
-    <img src="public/icon.svg" alt="Logo" width="50%">
+    <img src="public/icon-white.svg" alt="Logo" width="50%">
   </a>
 
   <h3 align="center">Mistral Thing</h3>
