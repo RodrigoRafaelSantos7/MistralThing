@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { getUrl } from "@/lib/utils";
 
 export const runtime = "edge";
 
@@ -48,7 +49,7 @@ export async function GET(request: Request) {
       <img
         alt="Mistral Thing logo"
         height={80}
-        src="/icon.svg"
+        src={`${getUrl()}/icon.svg`}
         style={{
           position: "absolute",
           bottom: "40px",
