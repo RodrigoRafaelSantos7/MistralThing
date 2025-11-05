@@ -3,7 +3,7 @@
 import type { ConvexReactClient } from "convex/react";
 import { useConvex, useConvexAuth, useMutation } from "convex/react";
 import { createContext, useEffect } from "react";
-import { Spinner } from "@/components/ui/spinner";
+import { Loading } from "@/components/ui/loading";
 import { api } from "@/convex/_generated/api";
 import { authClient } from "@/lib/auth-client";
 import { logger } from "@/lib/logger";
@@ -35,11 +35,7 @@ export function DatabaseProvider({ children }: { children: React.ReactNode }) {
   }, [isAuthenticated, isLoading, createSettings]);
 
   if (isLoading || !isAuthenticated || !convexClient) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center bg-background">
-        <Spinner />
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
