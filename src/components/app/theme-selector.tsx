@@ -47,6 +47,7 @@ export function ThemeSelector() {
   }
 
   const mode = settings.mode ?? "dark";
+  const currentTheme = settings.theme ?? "default";
 
   return (
     <Tooltip>
@@ -70,7 +71,7 @@ export function ThemeSelector() {
                 <CommandItem
                   className="data-[selected=true]:bg-foreground/10 data-[selected=true]:text-foreground"
                   onSelect={() => {
-                    setTheme(`${settings.theme}-light`);
+                    setTheme(`${currentTheme}-light`);
                     updateSettings({
                       mode: "light",
                     });
@@ -80,7 +81,7 @@ export function ThemeSelector() {
                   <SunIcon className="size-4" />
                   <span>Light</span>
                   <div className="flex-1" />
-                  {settings.mode === "light" && (
+                  {mode === "light" && (
                     <span className="text-muted-foreground text-xs">
                       Selected
                     </span>
@@ -89,7 +90,7 @@ export function ThemeSelector() {
                 <CommandItem
                   className="data-[selected=true]:bg-foreground/10 data-[selected=true]:text-foreground"
                   onSelect={() => {
-                    setTheme(`${settings.theme}-dark`);
+                    setTheme(`${currentTheme}-dark`);
                     updateSettings({
                       mode: "dark",
                     });
@@ -99,7 +100,7 @@ export function ThemeSelector() {
                   <MoonIcon className="size-4" />
                   <span>Dark</span>
                   <div className="flex-1" />
-                  {settings.mode === "dark" && (
+                  {mode === "dark" && (
                     <span className="text-muted-foreground text-xs">
                       Selected
                     </span>
@@ -147,7 +148,7 @@ export function ThemeSelector() {
                       <span>{themeOption.name}</span>
                     </div>
                     <div className="flex-1" />
-                    {themeOption.value === settings.theme && (
+                    {themeOption.value === currentTheme && (
                       <span className="text-muted-foreground text-xs">
                         Selected
                       </span>
