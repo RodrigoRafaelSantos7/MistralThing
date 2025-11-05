@@ -1,7 +1,7 @@
 import { ConvexError, v } from "convex/values";
-import { authComponent } from "@/convex/auth";
-import { models } from "@/convex/schema";
 import { mutation, query } from "./_generated/server";
+import { authComponent } from "./auth";
+import { models } from "./schema";
 
 /**
  * Retrieves the user's settings with authorization checks.

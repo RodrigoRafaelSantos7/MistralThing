@@ -38,9 +38,11 @@ export const createAuth = (
       // The Convex plugin is required for Convex compatibility
       convex(),
       anonymous({
-        // Prevent anonymous users from being deleted when linking accounts
-        // This prevents issues where anonymous sign-in triggers cleanup
         disableDeleteAnonymousUser: true,
+        onLinkAccount: async ({ anonymousUser, newUser }) => {
+          // biome-ignore lint/suspicious/noConsole: Temporary
+          await console.log({ anonymousUser, newUser });
+        },
       }),
     ],
   });
