@@ -1,12 +1,17 @@
+"use client";
+
 import {
   BotIcon,
   CreditCardIcon,
   GithubIcon,
+  LogInIcon,
+  LogOutIcon,
   PaintbrushIcon,
   SettingsIcon,
   UserIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { Anonymous, NotAnonymous } from "@/components/app/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,15 +23,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { siteConfig } from "@/config/site";
+import { useAuth } from "@/hooks/use-auth";
 import {
   accountAppearancePath,
   accountModelsPath,
   accountPath,
   accountPreferencesPath,
   accountSubscriptionPath,
+  loginPath,
 } from "@/paths";
 
 export function UserMenu() {
+  const { handleSignOut } = useAuth();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild className="cursor-pointer outline-none">
@@ -85,6 +93,22 @@ export function UserMenu() {
             GitHub
           </Link>
         </DropdownMenuItem>
+        <NotAnonymous>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleSignOut}>
+            <LogOutIcon className="size-4" />
+            Log out
+          </DropdownMenuItem>
+        </NotAnonymous>
+        <Anonymous>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href={loginPath()}>
+              <LogInIcon className="size-4" />
+              Log in
+            </Link>
+          </DropdownMenuItem>
+        </Anonymous>
       </DropdownMenuContent>
     </DropdownMenu>
   );
