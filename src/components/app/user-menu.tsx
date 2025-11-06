@@ -22,8 +22,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 import { siteConfig } from "@/config/site";
 import { useAuth } from "@/hooks/use-auth";
+import { useUser } from "@/hooks/use-database";
+import { getUsername } from "@/lib/usernames";
 import {
   accountAppearancePath,
   accountModelsPath,
@@ -34,14 +37,28 @@ import {
 } from "@/paths";
 
 export function UserMenu() {
+  const user = useUser();
   const { handleSignOut } = useAuth();
+
+  if (!user) {
+    return <Skeleton className="size-9" />;
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild className="cursor-pointer outline-none">
         <Button asChild size="icon" variant="ghost">
           <Avatar className="overflow-hidden rounded-md">
-            <AvatarImage className="rounded-none" src={""} />
-            <AvatarFallback className="rounded-none">R</AvatarFallback>
+            <AvatarImage
+              className="rounded-none"
+              src={user.image ?? undefined}
+            />
+            <AvatarFallback className="rounded-none">
+              {getUsername({
+                id: user._id,
+                name: user.name,
+              }).charAt(0)}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
@@ -51,7 +68,9 @@ export function UserMenu() {
       >
         <DropdownMenuLabel className="flex items-center gap-2">
           <div className="flex flex-col overflow-hidden">
-            <div className="truncate text-sm">Rafael Santos</div>
+            <div className="truncate text-sm">
+              {getUsername({ id: user._id, name: user.name })}
+            </div>
             <div className="truncate text-muted-foreground text-xs">Free</div>
           </div>
         </DropdownMenuLabel>

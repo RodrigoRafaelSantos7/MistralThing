@@ -43,3 +43,8 @@ export function useSettings() {
     settings,
   };
 }
+
+export function useUser() {
+  const user = useQuery(api.auth.getCurrentUser);
+  return user;
+}
