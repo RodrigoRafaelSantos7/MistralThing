@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { ConvexClientProvider } from "@/components/providers/convex-client-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import { DatabaseProvider } from "@/context/database";
 
 const Providers = ({ children }: { children: ReactNode }) => (
@@ -28,7 +29,10 @@ const Providers = ({ children }: { children: ReactNode }) => (
         "vercel-dark",
       ]}
     >
-      <DatabaseProvider>{children}</DatabaseProvider>
+      <DatabaseProvider>
+        {children}
+        <Toaster position="top-center" />
+      </DatabaseProvider>
     </ThemeProvider>
   </ConvexClientProvider>
 );

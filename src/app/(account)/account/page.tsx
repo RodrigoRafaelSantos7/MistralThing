@@ -120,12 +120,8 @@ const Page = () => {
             });
             toast.success("Username updated");
           }}
-          renderInput={({ onChange, value, "aria-invalid": ariaInvalid }) => (
-            <Input
-              aria-invalid={ariaInvalid}
-              onChange={(e) => onChange(e.target.value)}
-              value={value}
-            />
+          renderInput={({ onChange, value }) => (
+            <Input onChange={(e) => onChange(e.target.value)} value={value} />
           )}
         />
       </Section>

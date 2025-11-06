@@ -1,22 +1,22 @@
+import { Label } from "@radix-ui/react-label";
 import { useForm } from "@tanstack/react-form";
+import { Fragment } from "react/jsx-runtime";
 import z from "zod";
 import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Spinner } from "@/components/ui/spinner";
 
-export const DEFAULT_MAX_VALUE = 32;
-export const DEFAULT_MIN_VALUE = 1;
+const MIN_VALUE_LENGTH = 1;
+const MAX_VALUE_LENGTH = 32;
 
 const DefaultSingleFieldSchema = z.object({
   value: z
     .string()
-    .min(DEFAULT_MIN_VALUE, "Value must be at least 1 character.")
-    .max(DEFAULT_MAX_VALUE, "Value must be at most 32 characters."),
+    .min(MIN_VALUE_LENGTH, {
+      message: `Value must be at least ${MIN_VALUE_LENGTH} characters`,
+    })
+    .max(MAX_VALUE_LENGTH, {
+      message: `Value must be less than ${MAX_VALUE_LENGTH} characters`,
+    }),
 });
 
 export function SingleFieldForm(props: {
@@ -28,21 +28,21 @@ export function SingleFieldForm(props: {
   renderInput: (props: {
     onChange: (value: string) => void;
     value: string;
-    "aria-invalid"?: boolean;
   }) => React.ReactNode;
   onSubmit: (value: string) => void | Promise<void>;
 }) {
-  const schema = props.schema || DefaultSingleFieldSchema;
+  const schema = (props.schema ??
+    DefaultSingleFieldSchema) as typeof DefaultSingleFieldSchema;
 
   const form = useForm({
     defaultValues: {
       value: props.defaultValue,
     },
     validators: {
-      onBlur: schema.safeParse,
-      onSubmit: schema.safeParse,
-      onMount: schema.safeParse,
-      onChange: schema.safeParse,
+      onBlur: schema,
+      onSubmit: schema,
+      onMount: schema,
+      onChange: schema,
     },
     onSubmit: async ({ value }) => {
       await props.onSubmit(value.value);
@@ -50,64 +50,58 @@ export function SingleFieldForm(props: {
   });
   return (
     <form
+      className="flex flex-col overflow-hidden rounded-lg border bg-card"
       onSubmit={(e) => {
         e.preventDefault();
         form.handleSubmit();
       }}
     >
-      <FieldGroup>
-        <form.Field name="value">
-          {(field) => {
-            const isInvalid =
-              field.state.meta.isTouched && !field.state.meta.isValid;
-            const errors = field.state.meta.errors.map((error) => ({
-              message: error,
-            }));
-            return (
-              <Field
-                className="flex flex-col overflow-hidden rounded-lg border bg-card"
-                data-invalid={isInvalid ? true : undefined}
+      <form.Field name="value">
+        {(field) => (
+          <Fragment>
+            <div className="flex flex-col gap-4 p-4">
+              <Label className="font-semibold text-lg" htmlFor="username">
+                {props.label}
+              </Label>
+              <p className="text-muted-foreground text-sm">
+                {props.description}
+              </p>
+              {props.renderInput({
+                value: field.state.value,
+                onChange: field.handleChange,
+              })}
+            </div>
+            <div className="flex items-center justify-between border-t bg-sidebar p-4">
+              {field.state.meta.errors.length > 0 ? (
+                <p className="text-destructive text-sm">
+                  {field.state.meta.errors[0]?.message}
+                </p>
+              ) : (
+                <p className="text-muted-foreground text-sm">
+                  {props.footerMessage}
+                </p>
+              )}
+              <form.Subscribe
+                selector={(state) => ({
+                  isSubmitting: state.isSubmitting,
+                  isValid: state.isValid,
+                  isDirty: state.isDirty,
+                })}
               >
-                <div className="flex flex-col gap-4 p-4">
-                  <FieldLabel htmlFor={field.name}>{props.label}</FieldLabel>
-                  <FieldDescription>{props.description}</FieldDescription>
-                  {props.renderInput({
-                    value: field.state.value,
-                    onChange: field.handleChange,
-                    "aria-invalid": isInvalid,
-                  })}
-                  <FieldError errors={errors} />
-                </div>
-                <div className="flex items-center justify-between border-t bg-sidebar p-4">
-                  {!isInvalid && props.footerMessage && (
-                    <p className="text-muted-foreground text-sm">
-                      {props.footerMessage}
-                    </p>
-                  )}
-                  {isInvalid && <div />}
-                  <form.Subscribe
-                    selector={(state) => ({
-                      isSubmitting: state.isSubmitting,
-                      isValid: state.isValid,
-                      isDirty: state.isDirty,
-                    })}
+                {({ isSubmitting, isDirty, isValid }) => (
+                  <Button
+                    disabled={isSubmitting || !isValid || !isDirty}
+                    size="sm"
+                    type="submit"
                   >
-                    {({ isSubmitting, isDirty, isValid }) => (
-                      <Button
-                        disabled={isSubmitting || !isValid || !isDirty}
-                        size="sm"
-                        type="submit"
-                      >
-                        <span>Save</span>
-                      </Button>
-                    )}
-                  </form.Subscribe>
-                </div>
-              </Field>
-            );
-          }}
-        </form.Field>
-      </FieldGroup>
+                    {isSubmitting ? <Spinner /> : <span>Save</span>}
+                  </Button>
+                )}
+              </form.Subscribe>
+            </div>
+          </Fragment>
+        )}
+      </form.Field>
     </form>
   );
 }
