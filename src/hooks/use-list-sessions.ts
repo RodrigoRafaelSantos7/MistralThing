@@ -1,30 +1,29 @@
 import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 
-type SessionItem = {
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
-  userId: string;
-  expiresAt: Date;
-  token: string;
-  ipAddress?: string | null;
-  userAgent?: string | null;
-};
+type Session = NonNullable<
+  Awaited<ReturnType<typeof authClient.listSessions>>["data"]
+>[number];
 
-export function useListSessions(): SessionItem[] {
-  const [activeSessions, setActiveSessions] = useState<SessionItem[]>([]);
+export function useListSessions() {
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
-      const result = await authClient.listSessions();
-      if (Array.isArray(result)) {
-        setActiveSessions(result);
+    const fetchSessions = async () => {
+      try {
+        setIsLoading(true);
+        const { data: sessionsData } = await authClient.listSessions();
+        setSessions(sessionsData ?? []);
+      } catch {
+        setSessions([]);
+      } finally {
+        setIsLoading(false);
       }
-    })().catch(() => {
-      // Failed to load sessions
-    });
+    };
+
+    fetchSessions();
   }, []);
 
-  return activeSessions;
+  return { sessions, isLoading };
 }
