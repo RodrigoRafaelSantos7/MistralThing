@@ -8,7 +8,7 @@ export const models = v.union(
   v.literal("voxtral-small-latest"),
   v.literal("voxtral-mini-latest"),
   v.literal("pixtral-large-latest"),
-  v.literal("pixtral-12b"),
+  v.literal("pixtral-12b-2409"),
   v.literal("open-mistral-nemo"),
   v.literal("open-mistral-7b"),
   v.literal("open-mixtral-8x7b"),

@@ -1,6 +1,6 @@
 import type { SVGProps } from "react";
 import { Nemo } from "@/components/icons/nemo";
-import { Voxtral } from "@/components/icons/voxtral";
+import { VoxtralIcon } from "@/components/icons/voxtral";
 import type { ModelIcon } from "@/types/model-icons";
 import { Codestral } from "../icons/codestral";
 import { CodestralEmbed } from "../icons/codestral-embed";
@@ -35,7 +35,7 @@ const ModelIconComponent = ({ icon, ...props }: ModelIconProps) => {
     ocr: OCR,
     pixtral: Pixtral,
     small: Small,
-    voxtral: Voxtral,
+    voxtral: VoxtralIcon,
   };
 
   const Icon = icons[icon];

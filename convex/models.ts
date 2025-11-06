@@ -67,7 +67,7 @@ export const seedModels = mutation({
           "text-output" as const,
         ],
         icon: "small" as const,
-        access: "premium-required" as const,
+        access: "account-required" as const,
         credits: 1,
       },
       {
@@ -83,6 +83,72 @@ export const seedModels = mutation({
         ],
         icon: "magistral" as const,
         access: "premium-required" as const,
+        credits: 1,
+      },
+      {
+        name: "Voxtral Mini",
+        model: "voxtral-mini-latest" as const,
+        description:
+          "A mini version of Mistral's first audio input model. Ideal for transcribing audio to text.",
+        capabilities: [
+          "voice-input" as const,
+          "text-input" as const,
+          "text-output" as const,
+        ],
+        icon: "voxtral" as const,
+        access: "account-required" as const,
+        credits: 1,
+      },
+      {
+        name: "Voxtral Small",
+        model: "voxtral-small-latest" as const,
+        description:
+          "Mistral's first model with audio input capabilities for instructing use cases. Ideal for transcribing audio to text.",
+        capabilities: [
+          "voice-input" as const,
+          "text-input" as const,
+          "text-output" as const,
+        ],
+        icon: "voxtral" as const,
+        access: "account-required" as const,
+        credits: 1,
+      },
+      {
+        name: "Devstral Small 1.1",
+        model: "devstral-small-2507" as const,
+        description:
+          "An update to Mistral's open source model that excels at using tools to explore codebases, editing multiple files and power software engineering agents.",
+        capabilities: ["text-input" as const, "text-output" as const],
+        icon: "devstral" as const,
+        access: "account-required" as const,
+        credits: 1,
+      },
+      {
+        name: "Pixtral 12B",
+        model: "pixtral-12b-2409" as const,
+        description:
+          "A 12B model with image understanding capabilities in addition to text. Ideal for image understanding tasks and conversations.",
+        capabilities: [
+          "text-input" as const,
+          "text-output" as const,
+          "image-input" as const,
+        ],
+        icon: "pixtral" as const,
+        access: "account-required" as const,
+        credits: 1,
+      },
+      {
+        name: "Mistral Nemo 12B",
+        model: "open-mistral-nemo" as const,
+        description:
+          "Mistral's best multilingual open source model released July 2024. Ideal for multilingual tasks and conversations.",
+        capabilities: [
+          "text-input" as const,
+          "text-output" as const,
+          "image-input" as const,
+        ],
+        icon: "nemo" as const,
+        access: "account-required" as const,
         credits: 1,
       },
     ];

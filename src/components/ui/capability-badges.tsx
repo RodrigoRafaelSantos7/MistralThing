@@ -3,6 +3,7 @@ import { Arrow } from "@/components/icons/arrow";
 import { Image } from "@/components/icons/image";
 import { Reasoning } from "@/components/icons/reasoning";
 import { TextIcon } from "@/components/icons/text";
+import { Voice } from "@/components/icons/voice";
 import {
   Tooltip,
   TooltipContent,
@@ -39,11 +40,7 @@ function getCapabilityIcon(capability: Capability) {
     case "image":
       return <Image />;
     case "voice":
-      // TODO: Add VoiceIcon when available
-      return <TextIcon />;
-    case "audio":
-      // TODO: Add AudioIcon when available
-      return <TextIcon />;
+      return <Voice />;
     case "reasoning":
       return <Reasoning />;
     default:

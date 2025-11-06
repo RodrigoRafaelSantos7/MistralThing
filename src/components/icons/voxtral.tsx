@@ -1,6 +1,6 @@
 import type { SVGProps } from "react";
 
-export function Voxtral(props: SVGProps<SVGSVGElement>) {
+export function VoxtralIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       fill="none"
