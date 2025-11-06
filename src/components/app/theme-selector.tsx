@@ -38,6 +38,12 @@ export function ThemeSelector() {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (settings) {
+      setTheme(`${settings.theme}-${settings.mode}`);
+    }
+  }, [settings, setTheme]);
+
   if (!(mounted && settings)) {
     return <Skeleton className="size-9" />;
   }
@@ -67,7 +73,6 @@ export function ThemeSelector() {
                 <CommandItem
                   className="data-[selected=true]:bg-foreground/10 data-[selected=true]:text-foreground"
                   onSelect={() => {
-                    setTheme(`${currentTheme}-light`);
                     updateSettings({
                       mode: "light",
                     });
@@ -86,7 +91,6 @@ export function ThemeSelector() {
                 <CommandItem
                   className="data-[selected=true]:bg-foreground/10 data-[selected=true]:text-foreground"
                   onSelect={() => {
-                    setTheme(`${currentTheme}-dark`);
                     updateSettings({
                       mode: "dark",
                     });
@@ -110,7 +114,6 @@ export function ThemeSelector() {
                     className="data-[selected=true]:bg-foreground/10 data-[selected=true]:text-foreground"
                     key={themeOption.value}
                     onSelect={() => {
-                      setTheme(`${themeOption.value}-${mode}`);
                       updateSettings({
                         theme: themeOption.value,
                       });
