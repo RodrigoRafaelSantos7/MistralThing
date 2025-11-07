@@ -15,11 +15,7 @@ export const get = query({
     const user = await authComponent.getAuthUser(ctx);
 
     if (!user) {
-      throw new ConvexError({
-        code: 401,
-        message: "User not found. Please login to continue.",
-        severity: "high",
-      });
+      return null;
     }
 
     const settings = await ctx.db

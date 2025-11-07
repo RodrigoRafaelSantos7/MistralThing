@@ -4,11 +4,13 @@ import {
   type GenericCtx,
 } from "@convex-dev/better-auth";
 import { convex } from "@convex-dev/better-auth/plugins";
+import { requireActionCtx } from "@convex-dev/better-auth/utils";
 import { betterAuth } from "better-auth";
 import { anonymous, magicLink } from "better-auth/plugins";
 import { components, internal } from "./_generated/api";
 import type { DataModel } from "./_generated/dataModel";
 import { query } from "./_generated/server";
+import { sendMagicLink } from "./emails";
 
 const siteUrl = process.env.SITE_URL
   ? process.env.SITE_URL
@@ -86,8 +88,10 @@ export const createAuth = (
       convex(),
       magicLink({
         sendMagicLink: async ({ email, url }) => {
-          // biome-ignore lint/suspicious/noConsole: We are not sending the magic link to the user
-          await console.log({ email, url });
+          await sendMagicLink(requireActionCtx(ctx), {
+            to: email,
+            url,
+          });
         },
       }),
       anonymous({

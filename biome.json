@@ -13,7 +13,7 @@
       "!.next",
       "!dist",
       "!build",
-      "!convex/_generated"
+      "!**/_generated"
     ]
   },
   "formatter": {

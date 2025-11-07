@@ -13,7 +13,7 @@ export function cn(...inputs: ClassValue[]) {
 export const getUrl = () =>
   env.NODE_ENV === "development"
     ? "http://localhost:3000"
-    : "https://mistral-thing.vercel.app";
+    : "https://mistral-thing.xyz";
 
 export const nanoid = customAlphabet(
   "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
