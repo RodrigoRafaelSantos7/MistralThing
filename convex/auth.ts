@@ -5,9 +5,10 @@ import {
 } from "@convex-dev/better-auth";
 import { convex } from "@convex-dev/better-auth/plugins";
 import { betterAuth } from "better-auth";
-import { anonymous } from "better-auth/plugins";
+import { anonymous, magicLink } from "better-auth/plugins";
 import { components, internal } from "./_generated/api";
 import type { DataModel } from "./_generated/dataModel";
+import { query } from "./_generated/server";
 
 const siteUrl = process.env.SITE_URL
   ? process.env.SITE_URL
@@ -15,8 +16,6 @@ const siteUrl = process.env.SITE_URL
 
 const authFunctions: AuthFunctions = internal.auth;
 
-// The component client has methods needed for integrating Convex with Better Auth,
-// as well as helper methods for general use.
 export const authComponent = createClient<DataModel>(components.betterAuth, {
   authFunctions,
   triggers: {
@@ -79,14 +78,18 @@ export const createAuth = (
     },
     baseURL: siteUrl,
     database: authComponent.adapter(ctx),
-    // Configure simple, non-verified email/password to get started
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: false,
     },
     plugins: [
-      // The Convex plugin is required for Convex compatibility
       convex(),
+      magicLink({
+        sendMagicLink: async ({ email, url }) => {
+          // biome-ignore lint/suspicious/noConsole: We are not sending the magic link to the user
+          await console.log({ email, url });
+        },
+      }),
       anonymous({
         disableDeleteAnonymousUser: true,
         onLinkAccount: async ({ anonymousUser, newUser }) => {
@@ -99,5 +102,10 @@ export const createAuth = (
     ],
   });
 };
+
+export const getCurrentUser = query({
+  args: {},
+  handler: async (ctx) => authComponent.getAuthUser(ctx),
+});
 
 export const { onCreate, onUpdate, onDelete } = authComponent.triggersApi();

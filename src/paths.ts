@@ -6,3 +6,4 @@ export const accountModelsPath = () => "/account/models";
 export const accountAppearancePath = () => "/account/appearance";
 export const loginPath = () => "/login";
 export const loggedOutPath = () => "/logged-out";
+export const magicLinkPath = () => "/magic-link";
