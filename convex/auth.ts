@@ -6,7 +6,7 @@ import {
 import { convex } from "@convex-dev/better-auth/plugins";
 import { requireActionCtx } from "@convex-dev/better-auth/utils";
 import { betterAuth } from "better-auth";
-import { anonymous, magicLink } from "better-auth/plugins";
+import { magicLink } from "better-auth/plugins";
 import { components, internal } from "./_generated/api";
 import type { DataModel } from "./_generated/dataModel";
 import { query } from "./_generated/server";
@@ -58,32 +58,16 @@ export const authComponent = createClient<DataModel>(components.betterAuth, {
   },
 });
 
-const ONE_HOUR_SECONDS = 60 * 60;
-const DAYS_IN_YEAR = 365;
-const HOURS_IN_DAY = 24;
-const ONE_YEAR = ONE_HOUR_SECONDS * HOURS_IN_DAY * DAYS_IN_YEAR;
-const ONE_DAY = ONE_HOUR_SECONDS * HOURS_IN_DAY;
-
 export const createAuth = (
   ctx: GenericCtx<DataModel>,
   { optionsOnly } = { optionsOnly: false }
-) => {
-  return betterAuth({
-    // disable logging when createAuth is called just to generate options.
-    // this is not required, but there's a lot of noise in logs without it.
+) =>
+  betterAuth({
     logger: {
       disabled: optionsOnly,
     },
-    session: {
-      expiresIn: ONE_YEAR,
-      updateAge: ONE_DAY,
-    },
     baseURL: siteUrl,
     database: authComponent.adapter(ctx),
-    emailAndPassword: {
-      enabled: true,
-      requireEmailVerification: false,
-    },
     plugins: [
       convex(),
       magicLink({
@@ -94,21 +78,10 @@ export const createAuth = (
           });
         },
       }),
-      anonymous({
-        disableDeleteAnonymousUser: true,
-        onLinkAccount: async ({ anonymousUser, newUser }) => {
-          // Need to delete the anonymous user after linking
-          // There is a bug with the anonymous user
-          // biome-ignore lint/suspicious/noConsole: Temporary
-          await console.log({ anonymousUser, newUser });
-        },
-      }),
     ],
   });
-};
 
 export const getCurrentUser = query({
-  args: {},
   handler: async (ctx) => authComponent.getAuthUser(ctx),
 });
 
