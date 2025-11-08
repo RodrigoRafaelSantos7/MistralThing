@@ -12,45 +12,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useSession } from "@/hooks/use-session";
 import { authClient } from "@/lib/auth-client";
 import { loggedOutPath } from "@/paths";
-
-export function Anonymous({ children }: { children: React.ReactNode }) {
-  const { data, isPending } = useSession();
-
-  if (isPending) {
-    return null;
-  }
-
-  if (!data) {
-    return null;
-  }
-
-  if (!data.user.isAnonymous) {
-    return null;
-  }
-
-  return children;
-}
-
-export function NotAnonymous({ children }: { children: React.ReactNode }) {
-  const { data, isPending } = useSession();
-
-  if (isPending) {
-    return null;
-  }
-
-  if (!data) {
-    return null;
-  }
-
-  if (data.user.isAnonymous) {
-    return null;
-  }
-
-  return children;
-}
 
 export function LogoutDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
