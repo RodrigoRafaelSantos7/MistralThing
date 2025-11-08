@@ -28,3 +28,24 @@ export const THEMES = [
     value: "vercel",
   },
 ] as const;
+
+export const DEFAULT_THEME = "default";
+export const DEFAULT_MODE = "dark";
+export const STORAGE_KEY = "mistral-thing-theme";
+
+export const EXTENSIVE_THEMES = [
+  "default-light",
+  "default-dark",
+  "t3-chat-light",
+  "t3-chat-dark",
+  "claymorphism-light",
+  "claymorphism-dark",
+  "claude-light",
+  "claude-dark",
+  "graphite-light",
+  "graphite-dark",
+  "amethyst-haze-light",
+  "amethyst-haze-dark",
+  "vercel-light",
+  "vercel-dark",
+];
