@@ -1,0 +1,114 @@
+"use client";
+
+import { type Preloaded, usePreloadedQuery } from "convex/react";
+import { toast } from "sonner";
+import ModelIcon from "@/components/app/model-icon";
+import { CapabilityBadges } from "@/components/ui/capability-badges";
+import { Section } from "@/components/ui/section";
+import { Switch } from "@/components/ui/switch";
+import type { api } from "@/convex/_generated/api";
+import { useSettings } from "@/hooks/use-database";
+import type { Model } from "@/types/models";
+
+type ModelsViewProps = {
+  preloadedModels: Preloaded<typeof api.models.getAll>;
+};
+
+const ModelsView = ({ preloadedModels }: ModelsViewProps) => {
+  const { settings, updateSettings } = useSettings();
+  const allModels = usePreloadedQuery(preloadedModels);
+
+  if (!settings) {
+    return null;
+  }
+
+  const currentPinned = settings.pinnedModels || [];
+  const activeModelCount = currentPinned.length;
+
+  const handleModelToggle = (
+    model: Model,
+    name: string,
+    isEnabled: boolean
+  ) => {
+    let updatedPinned: Model[] = [];
+
+    if (isEnabled) {
+      updatedPinned = [...currentPinned, model];
+    } else {
+      if (activeModelCount <= 1) {
+        return;
+      }
+      updatedPinned = currentPinned.filter((m) => m !== model);
+    }
+
+    updateSettings({
+      pinnedModels: updatedPinned,
+    });
+
+    toast.success(`${name} ${isEnabled ? "pinned" : "unpinned"}`);
+  };
+
+  const isPinned = (model: Model) => settings.pinnedModels.includes(model);
+
+  return (
+    <div className="flex w-full flex-col gap-8">
+      <title>Models | Mistral Thing</title>
+      <Section
+        description="Toggle which models appear in your model selector"
+        title="Available Models"
+      >
+        <div className="space-y-3">
+          {allModels?.map((model) => (
+            <div
+              className="flex flex-col overflow-hidden rounded-lg border bg-card backdrop-blur-md"
+              key={model._id}
+            >
+              <div className="flex flex-1 gap-4 border-b p-4">
+                <div>
+                  <ModelIcon
+                    className="size-6 fill-primary"
+                    icon={model.icon}
+                  />
+                </div>
+                <div className="flex flex-1 gap-1">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{model.name}</span>
+                    </div>
+                    <p className="text-muted-foreground text-sm">
+                      {model.description}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={isPinned(model.model)}
+                    disabled={isPinned(model.model) && activeModelCount <= 1}
+                    onCheckedChange={(checked) =>
+                      handleModelToggle(model.model, model.name, checked)
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 bg-sidebar p-4">
+                <div>
+                  {model.capabilities && model.capabilities.length > 0 && (
+                    <div className="flex items-center gap-1">
+                      <CapabilityBadges capabilities={model.capabilities} />
+                    </div>
+                  )}
+                </div>
+
+                <div className="text-muted-foreground text-xs">
+                  {model.credits} credit
+                  {Number(model.credits ?? 0) > 1 ? "s" : ""}/message
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+    </div>
+  );
+};
+
+export { ModelsView };

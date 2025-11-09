@@ -1,20 +1,16 @@
 "use client";
 
-import { type Preloaded, usePreloadedQuery } from "convex/react";
 import { useTheme } from "next-themes";
 import { useEffect } from "react";
 import { Section } from "@/components/ui/section";
 import { Separator } from "@/components/ui/separator";
-import type { api } from "@/convex/_generated/api";
+import { Spinner } from "@/components/ui/spinner";
+import { useSettings } from "@/hooks/use-database";
 import { ModeToggle } from "@/modules/account/ui/components/mode-toggle";
 import { ThemeToggle } from "@/modules/account/ui/components/theme-toggle";
 
-type AppearanceViewProps = {
-  preloadedSettings: Preloaded<typeof api.settings.get>;
-};
-
-const AppearanceView = (props: AppearanceViewProps) => {
-  const settings = usePreloadedQuery(props.preloadedSettings);
+const AppearanceView = () => {
+  const { settings } = useSettings();
   const { setTheme } = useTheme();
 
   useEffect(() => {
@@ -24,7 +20,7 @@ const AppearanceView = (props: AppearanceViewProps) => {
   }, [settings, setTheme]);
 
   if (!settings) {
-    return null;
+    return <Spinner />;
   }
 
   return (

@@ -1,26 +1,26 @@
 "use client";
 
-import { type Preloaded, usePreloadedQuery } from "convex/react";
 import { Globe } from "lucide-react";
 import { Section } from "@/components/ui/section";
 import { Separator } from "@/components/ui/separator";
-import type { api } from "@/convex/_generated/api";
 import { useSession } from "@/hooks/use-session";
 import { getUsername } from "@/lib/usernames";
+import { useSessionsContext } from "@/modules/account/providers/sessions-provider";
 import { UsernameForm } from "@/modules/account/ui/components/username-form";
 import { getDeviceIcon } from "@/modules/account/utils/get-device-icon";
 import { getDeviceInfo } from "@/modules/account/utils/get-device-info";
 import { SessionCard } from "../components/session-card";
 
-type AccountViewProps = {
-  preloadedSessions: Preloaded<typeof api.users.getAllSessions>;
-};
-
-const Page = (props: AccountViewProps) => {
-  const sessions = usePreloadedQuery(props.preloadedSessions);
+const Page = () => {
+  const context = useSessionsContext();
+  const sessions = context?.sessions;
   const { data: session } = useSession();
 
   if (!session) {
+    return null;
+  }
+
+  if (!sessions) {
     return null;
   }
 

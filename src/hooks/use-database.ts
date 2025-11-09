@@ -1,8 +1,14 @@
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useSettingsContext } from "@/modules/account/providers/settings-provider";
 
 export function useSettings() {
-  const settings = useQuery(api.settings.get, {});
+  // Try to use settings from context first (preloaded in account layout)
+  // Falls back to useQuery if context is not available (outside account pages)
+  const context = useSettingsContext();
+  const settingsFromQuery = useQuery(api.settings.get, {});
+  const settings = context?.settings ?? settingsFromQuery;
+
   const updateSettings = useMutation(api.settings.update).withOptimisticUpdate(
     (localStore, args) => {
       const currentSettings = localStore.getQuery(api.settings.get, {});
