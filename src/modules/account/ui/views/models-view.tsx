@@ -1,25 +1,24 @@
 "use client";
 
-import { type Preloaded, usePreloadedQuery } from "convex/react";
 import { toast } from "sonner";
 import ModelIcon from "@/components/app/model-icon";
 import { CapabilityBadges } from "@/components/ui/capability-badges";
 import { Section } from "@/components/ui/section";
+import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
-import type { api } from "@/convex/_generated/api";
-import { useSettings } from "@/hooks/use-database";
+import { useModels, useSettings } from "@/hooks/use-database";
 import type { Model } from "@/types/models";
 
-type ModelsViewProps = {
-  preloadedModels: Preloaded<typeof api.models.getAll>;
-};
-
-const ModelsView = ({ preloadedModels }: ModelsViewProps) => {
+const ModelsView = () => {
   const { settings, updateSettings } = useSettings();
-  const allModels = usePreloadedQuery(preloadedModels);
+  const allModels = useModels();
 
   if (!settings) {
-    return null;
+    return <Spinner />;
+  }
+
+  if (!allModels) {
+    return <Spinner />;
   }
 
   const currentPinned = settings.pinnedModels || [];

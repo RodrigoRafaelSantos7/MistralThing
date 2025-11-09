@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useModelsContext } from "@/modules/account/providers/models-provider";
 import { useSettingsContext } from "@/modules/account/providers/settings-provider";
 
 export function useSettings() {
@@ -36,6 +37,14 @@ export function useSettings() {
     updateSettings,
     settings,
   };
+}
+
+export function useModels() {
+  const context = useModelsContext();
+  const modelsFromQuery = useQuery(api.models.getAll, {});
+  const models = context?.models ?? modelsFromQuery;
+
+  return models;
 }
 
 export function useUser() {

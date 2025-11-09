@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { api } from "@/convex/_generated/api";
 import { getToken } from "@/lib/auth-server";
+import { ModelsProvider } from "@/modules/account/providers/models-provider";
+import { SessionsProvider } from "@/modules/account/providers/sessions-provider";
 import { SettingsProvider } from "@/modules/account/providers/settings-provider";
 import { AccountLayout } from "@/modules/account/ui/layouts/account-layout";
 import { AuthGuard } from "@/modules/auth/ui/components/auth-guard";
@@ -13,13 +15,23 @@ export const metadata: Metadata = {
 
 const Layout = async ({ children }: { children: ReactNode }) => {
   const token = await getToken();
-  const preloadedSettings = await preloadQuery(api.settings.get, {}, { token });
+  // Preload settings, models, and sessions in parallel for faster loading
+  const [preloadedSettings, preloadedModels, preloadedSessions] =
+    await Promise.all([
+      preloadQuery(api.settings.get, {}, { token }),
+      preloadQuery(api.models.getAll, {}, { token }),
+      preloadQuery(api.users.getAllSessions, {}, { token }),
+    ]);
 
   return (
     <AuthGuard>
       <AccountLayout>
         <SettingsProvider preloadedSettings={preloadedSettings}>
-          {children}
+          <ModelsProvider preloadedModels={preloadedModels}>
+            <SessionsProvider preloadedSessions={preloadedSessions}>
+              {children}
+            </SessionsProvider>
+          </ModelsProvider>
         </SettingsProvider>
       </AccountLayout>
     </AuthGuard>
