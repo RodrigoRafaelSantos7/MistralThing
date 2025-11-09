@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ACCOUNT_PAGES } from "@/config/accont-pages";
+import { ACCOUNT_PAGES } from "@/config/account-pages";
 import { cn } from "@/lib/utils";
 
 const AccountTabs = () => {
