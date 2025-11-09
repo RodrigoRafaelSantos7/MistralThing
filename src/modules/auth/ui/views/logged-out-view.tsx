@@ -18,7 +18,7 @@ const LoggedOutView = () => (
           using Mistral Thing.
         </span>
       </div>
-
+      §
       <div className="flex w-full flex-col gap-2">
         <div className="w-full">
           <Button asChild className="w-full" variant="outline">
