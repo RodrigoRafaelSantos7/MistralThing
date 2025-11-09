@@ -3,14 +3,12 @@
 import {
   BotIcon,
   GithubIcon,
-  LogInIcon,
   LogOutIcon,
   PaintbrushIcon,
   SettingsIcon,
   UserIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { Anonymous, NotAnonymous } from "@/components/app/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { siteConfig } from "@/config/site";
+import { SITE_CONFIG } from "@/config/site";
 import { useAuth } from "@/hooks/use-auth";
 import { useUser } from "@/hooks/use-database";
 import { getUsername } from "@/lib/usernames";
@@ -31,7 +29,6 @@ import {
   accountModelsPath,
   accountPath,
   accountPreferencesPath,
-  loginPath,
 } from "@/paths";
 
 export function UserMenu() {
@@ -101,27 +98,20 @@ export function UserMenu() {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href={siteConfig.links.github} rel="noreferrer" target="_blank">
+          <Link
+            href={SITE_CONFIG.links.github}
+            rel="noreferrer"
+            target="_blank"
+          >
             <GithubIcon className="size-4" />
             GitHub
           </Link>
         </DropdownMenuItem>
-        <NotAnonymous>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleSignOut}>
-            <LogOutIcon className="size-4" />
-            Log out
-          </DropdownMenuItem>
-        </NotAnonymous>
-        <Anonymous>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <Link href={loginPath()}>
-              <LogInIcon className="size-4" />
-              Log in
-            </Link>
-          </DropdownMenuItem>
-        </Anonymous>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleSignOut}>
+          <LogOutIcon className="size-4" />
+          Log out
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

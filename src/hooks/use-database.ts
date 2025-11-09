@@ -1,7 +1,15 @@
 import { useMutation, useQuery } from "convex/react";
+import { useModelsContext } from "@/components/providers/models-provider";
+import { useSessionsContext } from "@/components/providers/sessions-provider";
+import { useSettingsContext } from "@/components/providers/settings-provider";
+import { useUserContext } from "@/components/providers/user-provider";
 import { api } from "@/convex/_generated/api";
+
 export function useSettings() {
-  const settings = useQuery(api.settings.get, {});
+  const context = useSettingsContext();
+  const settingsFromQuery = useQuery(api.settings.get, {});
+  const settings = context?.settings ?? settingsFromQuery;
+
   const updateSettings = useMutation(api.settings.update).withOptimisticUpdate(
     (localStore, args) => {
       const currentSettings = localStore.getQuery(api.settings.get, {});
@@ -31,7 +39,26 @@ export function useSettings() {
   };
 }
 
+export function useModels() {
+  const context = useModelsContext();
+  const modelsFromQuery = useQuery(api.models.getAll, {});
+  const models = context?.models ?? modelsFromQuery;
+
+  return models;
+}
+
+export function useSessions() {
+  const context = useSessionsContext();
+  const sessionsFromQuery = useQuery(api.users.getAllSessions, {});
+  const sessions = context?.sessions ?? sessionsFromQuery;
+
+  return sessions;
+}
+
 export function useUser() {
-  const user = useQuery(api.auth.getCurrentUser);
+  const context = useUserContext();
+  const userFromQuery = useQuery(api.auth.getCurrentUser);
+  const user = context?.user ?? userFromQuery;
+
   return user;
 }
