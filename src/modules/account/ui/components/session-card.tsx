@@ -1,5 +1,3 @@
-"use client";
-
 import { formatDistanceToNow } from "date-fns";
 import { Clock, MapPin } from "lucide-react";
 import { Activity } from "react";
