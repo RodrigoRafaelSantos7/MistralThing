@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { UAParser } from "ua-parser-js";
-import { LogoutDialog, RevokeSessionDialog } from "@/components/app/auth";
 import { SingleFieldForm } from "@/components/app/single-field-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +22,8 @@ import { api } from "@/convex/_generated/api";
 import { useSession } from "@/hooks/use-session";
 import { authClient } from "@/lib/auth-client";
 import { getUsername } from "@/lib/usernames";
+import { LogoutDialog } from "@/modules/account/ui/components/logout-dialog";
+import { RevokeSessionDialog } from "@/modules/account/ui/components/revoke-session-dialog";
 
 const MILLISECONDS_PER_SECOND = 1000;
 const SECONDS_PER_MINUTE = 60;
