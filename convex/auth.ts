@@ -7,6 +7,7 @@ import { convex } from "@convex-dev/better-auth/plugins";
 import { requireActionCtx } from "@convex-dev/better-auth/utils";
 import { betterAuth } from "better-auth";
 import { magicLink } from "better-auth/plugins";
+import { ConvexError } from "convex/values";
 import { components, internal } from "./_generated/api";
 import type { DataModel } from "./_generated/dataModel";
 import { query } from "./_generated/server";
@@ -17,6 +18,22 @@ const siteUrl = process.env.SITE_URL
   : "http://localhost:3000";
 
 const authFunctions: AuthFunctions = internal.auth;
+
+/**
+ * Gets a required environment variable, throwing a clear error if missing.
+ * This ensures fail-fast behavior with descriptive error messages.
+ */
+function getRequiredEnvVar(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new ConvexError({
+      code: 500,
+      message: `Missing required environment variable: ${name}. Please set ${name} in your environment configuration.`,
+      severity: "high",
+    });
+  }
+  return value;
+}
 
 export const authComponent = createClient<DataModel>(components.betterAuth, {
   authFunctions,
@@ -70,12 +87,12 @@ export const createAuth = (
     database: authComponent.adapter(ctx),
     socialProviders: {
       github: {
-        clientId: process.env.GITHUB_CLIENT_ID as string,
-        clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+        clientId: getRequiredEnvVar("GITHUB_CLIENT_ID"),
+        clientSecret: getRequiredEnvVar("GITHUB_CLIENT_SECRET"),
       },
       google: {
-        clientId: process.env.GOOGLE_CLIENT_ID as string,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+        clientId: getRequiredEnvVar("GOOGLE_CLIENT_ID"),
+        clientSecret: getRequiredEnvVar("GOOGLE_CLIENT_SECRET"),
         accessType: "offline",
         prompt: "select_account consent",
       },
