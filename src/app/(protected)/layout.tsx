@@ -1,6 +1,6 @@
 "use server";
 
-import { preloadQuery } from "convex/nextjs";
+import { fetchQuery, preloadQuery } from "convex/nextjs";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { ModelsProvider } from "@/components/providers/models-provider";
@@ -13,9 +13,10 @@ import { loginPath } from "@/paths";
 
 const ProtectedLayout = async ({ children }: { children: ReactNode }) => {
   const token = await getToken();
+  const session = await fetchQuery(api.users.getSession, {}, { token });
 
-  if (!token) {
-    return redirect(loginPath());
+  if (!session) {
+    redirect(loginPath());
   }
 
   const [preloadedSettings, preloadedModels, preloadedSessions, preloadedUser] =
