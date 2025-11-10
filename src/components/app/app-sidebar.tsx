@@ -1,6 +1,7 @@
 import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { DynamicImage } from "@/components/app/dynamic-image";
+import { AppSidebarKeyboardShortcuts } from "@/components/app/sidebar-keyboard-shortcuts";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -21,6 +22,7 @@ export function AppSidebar() {
       <SidebarContent>
         <AppSidebarActions />
       </SidebarContent>
+      <AppSidebarKeyboardShortcuts />
     </Sidebar>
   );
 }

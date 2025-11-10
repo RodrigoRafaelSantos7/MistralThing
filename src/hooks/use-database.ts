@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "convex/react";
 import { useModelsContext } from "@/components/providers/models-provider";
 import { useSessionsContext } from "@/components/providers/sessions-provider";
 import { useSettingsContext } from "@/components/providers/settings-provider";
+import { useThreadsContext } from "@/components/providers/thread-provider";
 import { useUserContext } from "@/components/providers/user-provider";
 import { api } from "@/convex/_generated/api";
 import { useSession } from "@/hooks/use-session";
@@ -66,4 +67,12 @@ export function useUser() {
   const user = context?.user ?? userFromQuery;
 
   return user;
+}
+
+export function useThreads() {
+  const context = useThreadsContext();
+  const threadsFromQuery = useQuery(api.threads.listThreadsByUserId, {});
+  const threads = context?.threads ?? threadsFromQuery;
+
+  return threads;
 }

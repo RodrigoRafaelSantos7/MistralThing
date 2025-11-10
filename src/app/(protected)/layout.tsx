@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { ModelsProvider } from "@/components/providers/models-provider";
 import { SessionsProvider } from "@/components/providers/sessions-provider";
 import { SettingsProvider } from "@/components/providers/settings-provider";
+import { ThreadsProvider } from "@/components/providers/thread-provider";
 import { UserProvider } from "@/components/providers/user-provider";
 import { api } from "@/convex/_generated/api";
 import { getToken } from "@/lib/auth-server";
@@ -24,20 +25,28 @@ const ProtectedLayout = async ({ children }: { children: ReactNode }) => {
     redirect(loginPath());
   }
 
-  const [preloadedSettings, preloadedModels, preloadedSessions, preloadedUser] =
-    await Promise.all([
-      preloadQuery(api.settings.get, {}, { token }),
-      preloadQuery(api.models.getAll, {}, { token }),
-      preloadQuery(api.users.getAllSessions, {}, { token }),
-      preloadQuery(api.auth.getCurrentUser, {}, { token }),
-    ]);
+  const [
+    preloadedSettings,
+    preloadedModels,
+    preloadedSessions,
+    preloadedUser,
+    preloadedThreads,
+  ] = await Promise.all([
+    preloadQuery(api.settings.get, {}, { token }),
+    preloadQuery(api.models.getAll, {}, { token }),
+    preloadQuery(api.users.getAllSessions, {}, { token }),
+    preloadQuery(api.auth.getCurrentUser, {}, { token }),
+    preloadQuery(api.threads.listThreadsByUserId, {}, { token }),
+  ]);
 
   return (
     <UserProvider preloadedUser={preloadedUser}>
       <SettingsProvider preloadedSettings={preloadedSettings}>
         <ModelsProvider preloadedModels={preloadedModels}>
           <SessionsProvider preloadedSessions={preloadedSessions}>
-            {children}
+            <ThreadsProvider preloadedThreads={preloadedThreads}>
+              {children}
+            </ThreadsProvider>
           </SessionsProvider>
         </ModelsProvider>
       </SettingsProvider>
