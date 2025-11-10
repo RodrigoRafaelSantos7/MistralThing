@@ -8,7 +8,7 @@ import { useParamsThreadId } from "@/hooks/use-params-thread-id";
 const AppSidebarKeyboardShortcuts = () => {
   const router = useRouter();
   const currentThreadId = useParamsThreadId();
-  const threads = useThreads();
+  const { threads } = useThreads();
 
   const handleOpenShortcut = useCallback(
     (e: KeyboardEvent) => {

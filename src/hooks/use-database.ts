@@ -74,5 +74,48 @@ export function useThreads() {
   const threadsFromQuery = useQuery(api.threads.listThreadsByUserId, {});
   const threads = context?.threads ?? threadsFromQuery;
 
-  return threads;
+  const updateThread = useMutation(
+    api.threads.updateThread
+  ).withOptimisticUpdate((localStore, args) => {
+    const currentThreads = localStore.getQuery(
+      api.threads.listThreadsByUserId,
+      {}
+    );
+    if (currentThreads !== undefined && currentThreads !== null) {
+      const updatedThreads = currentThreads.map((thread) => {
+        if (thread._id === args.threadId) {
+          return {
+            ...thread,
+            ...(args.title !== undefined && { title: args.title }),
+            ...(args.status !== undefined && { status: args.status }),
+            ...(args.streamId !== undefined && { streamId: args.streamId }),
+            updatedAt: Date.now(),
+          };
+        }
+        return thread;
+      });
+      localStore.setQuery(api.threads.listThreadsByUserId, {}, updatedThreads);
+    }
+  });
+
+  const deleteThread = useMutation(
+    api.threads.deleteThread
+  ).withOptimisticUpdate((localStore, args) => {
+    const currentThreads = localStore.getQuery(
+      api.threads.listThreadsByUserId,
+      {}
+    );
+    if (currentThreads !== undefined && currentThreads !== null) {
+      const updatedThreads = currentThreads.filter(
+        (thread) => thread._id !== args.threadId
+      );
+      localStore.setQuery(api.threads.listThreadsByUserId, {}, updatedThreads);
+    }
+  });
+
+  return {
+    threads,
+    updateThread,
+    deleteThread,
+  };
 }

@@ -41,7 +41,7 @@ export const listThreadsByUserId = query({
  * @returns The thread.
  */
 export const createThread = mutation({
-  args: { userId: v.id("user") },
+  args: { userId: v.string() },
   handler: async (ctx, args) => {
     const thread = await ctx.db.insert("thread", {
       userId: args.userId,

@@ -1,6 +1,5 @@
 "use client";
 
-import { useMutation } from "convex/react";
 import { PlusIcon, TrashIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -33,7 +32,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { api } from "@/convex/_generated/api";
 import { useThreadsByTimeRange } from "@/hooks/use-chats-by-time-range";
 import { useThreads } from "@/hooks/use-database";
 import { useParamsThreadId } from "@/hooks/use-params-thread-id";
@@ -102,7 +100,7 @@ function AppSidebarThreads({
 }: {
   setThreadToDelete: (thread: Thread | null) => void;
 }) {
-  const threads = useThreads();
+  const { threads } = useThreads();
   const groups = useThreadsByTimeRange(threads ?? []);
 
   return (
@@ -232,16 +230,16 @@ function DeleteThreadDialog({
   thread: Thread | null;
   setThreadToDelete: (thread: Thread | null) => void;
 }) {
-  const deleteThreadMutation = useMutation(api.threads.deleteThread);
+  const { deleteThread } = useThreads();
   const threadId = useParamsThreadId();
   const router = useRouter();
 
-  async function handleDelete() {
+  function handleDelete() {
     if (!thread) {
       return;
     }
 
-    await deleteThreadMutation({ threadId: thread._id });
+    deleteThread({ threadId: thread._id });
 
     if (threadId === thread._id) {
       router.push(indexPath());
