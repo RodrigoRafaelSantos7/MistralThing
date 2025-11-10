@@ -103,7 +103,7 @@ function AppSidebarThreads({
   setThreadToDelete: (thread: Thread | null) => void;
 }) {
   const threads = useThreads();
-  const groups = useThreadsByTimeRange(threads?.page ?? []);
+  const groups = useThreadsByTimeRange(threads ?? []);
 
   return (
     <>
@@ -193,7 +193,13 @@ function ThreadItem({
             }}
           >
             <span className="flex-1 truncate">{thread.title}</span>
-            <Activity mode={thread.status === "" ? "visible" : "hidden"}>
+            <Activity
+              mode={
+                thread.status === "streaming" || thread.status === "submitted"
+                  ? "visible"
+                  : "hidden"
+              }
+            >
               <Spinner />
             </Activity>
           </Link>
@@ -235,9 +241,9 @@ function DeleteThreadDialog({
       return;
     }
 
-    const result = await deleteThreadMutation({ threadId: thread._id });
+    await deleteThreadMutation({ threadId: thread._id });
 
-    if (result.isDone && threadId === thread._id) {
+    if (threadId === thread._id) {
       router.push(indexPath());
     }
 

@@ -1,7 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { authComponent } from "./auth";
-import { status } from "./schema";
+import { threadStatus } from "./schema";
 
 /**
  * List the threads for a given user.
@@ -45,6 +45,7 @@ export const createThread = mutation({
   handler: async (ctx, args) => {
     const thread = await ctx.db.insert("thread", {
       userId: args.userId,
+      status: "ready",
       updatedAt: Date.now(),
     });
     return thread;
@@ -62,7 +63,7 @@ export const updateThread = mutation({
   args: {
     threadId: v.id("thread"),
     title: v.optional(v.string()),
-    status: v.optional(status),
+    status: v.optional(threadStatus),
     streamId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {

@@ -36,7 +36,7 @@ const icons = v.union(
 
 export const modes = v.union(v.literal("light"), v.literal("dark"));
 
-export const status = v.union(
+export const threadStatus = v.union(
   v.literal("ready"),
   v.literal("streaming"),
   v.literal("submitted")
@@ -64,7 +64,7 @@ const schema = defineSchema({
   thread: defineTable({
     userId: v.string(),
     title: v.optional(v.string()),
-    status: v.optional(status),
+    status: threadStatus,
     streamId: v.optional(v.string()),
     updatedAt: v.number(),
   }).index("by_userId_updatedAt", ["userId", "updatedAt"]),

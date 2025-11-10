@@ -1,11 +1,13 @@
+import type { Id } from "@/convex/_generated/dataModel";
+
 export type Status = "ready" | "streaming" | "submitted";
 
 export type Thread = {
-  id: string;
+  _id: Id<"thread">;
+  _creationTime: number;
   title?: string;
-  status?: Status;
+  status: Status;
   streamId?: string;
-  createdAt?: number;
-  updatedAt?: number;
+  updatedAt: number;
   userId: string;
 };

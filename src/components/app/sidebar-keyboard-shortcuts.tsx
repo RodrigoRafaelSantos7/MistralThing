@@ -24,11 +24,11 @@ const AppSidebarKeyboardShortcuts = () => {
       e.preventDefault();
       e.stopPropagation();
 
-      if (!threads?.page || threads.page.length === 0) {
+      if (!threads || threads.length === 0) {
         return;
       }
 
-      const currentIndex = threads.page.findIndex(
+      const currentIndex = threads.findIndex(
         (thread) => thread._id === currentThreadId
       );
 
@@ -36,7 +36,7 @@ const AppSidebarKeyboardShortcuts = () => {
         return;
       }
 
-      const pageLength = threads.page.length;
+      const pageLength = threads.length;
       let nextIndex: number;
       if (direction === "up") {
         nextIndex = currentIndex <= 0 ? pageLength - 1 : currentIndex - 1;
@@ -44,7 +44,7 @@ const AppSidebarKeyboardShortcuts = () => {
         nextIndex = currentIndex >= pageLength - 1 ? 0 : currentIndex + 1;
       }
 
-      const nextThread = threads.page[nextIndex];
+      const nextThread = threads[nextIndex];
 
       if (nextThread) {
         router.push(`/${nextThread._id}`);
