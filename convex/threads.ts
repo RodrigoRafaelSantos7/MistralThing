@@ -95,9 +95,10 @@ export const updateThread = mutation({
       });
     }
 
-    await ctx.db.patch(args.threadId, {
-      title: args.title,
-      status: args.status,
+    const { threadId, ...updateFields } = args;
+
+    await ctx.db.patch(threadId, {
+      ...updateFields,
       updatedAt: Date.now(),
     });
   },

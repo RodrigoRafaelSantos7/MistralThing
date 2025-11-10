@@ -1,9 +1,11 @@
 "use client";
 
-import { PlusIcon, TrashIcon } from "lucide-react";
+import { useForm } from "@tanstack/react-form";
+import { PencilIcon, PlusIcon, TrashIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Activity, useState } from "react";
+import z from "zod";
 import { DynamicImage } from "@/components/app/dynamic-image";
 import { AppSidebarKeyboardShortcuts } from "@/components/app/sidebar-keyboard-shortcuts";
 import { Button } from "@/components/ui/button";
@@ -15,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import {
   Sidebar,
   SidebarContent,
@@ -41,15 +44,23 @@ import type { Thread } from "@/types/threads";
 
 export function AppSidebar() {
   const [threadToDelete, setThreadToDelete] = useState<Thread | null>(null);
+  const [threadToEdit, setThreadToEdit] = useState<Thread | null>(null);
 
   return (
     <Sidebar>
       <AppSidebarHeader />
       <SidebarContent>
         <AppSidebarActions />
-        <AppSidebarThreads setThreadToDelete={setThreadToDelete} />
+        <AppSidebarThreads
+          setThreadToDelete={setThreadToDelete}
+          setThreadToEdit={setThreadToEdit}
+        />
       </SidebarContent>
       <AppSidebarKeyboardShortcuts />
+      <EditThreadTitleDialog
+        setThreadToEdit={setThreadToEdit}
+        thread={threadToEdit}
+      />
       <DeleteThreadDialog
         setThreadToDelete={setThreadToDelete}
         thread={threadToDelete}
@@ -96,8 +107,10 @@ function AppSidebarActions() {
 }
 
 function AppSidebarThreads({
+  setThreadToEdit,
   setThreadToDelete,
 }: {
+  setThreadToEdit: (thread: Thread) => void;
   setThreadToDelete: (thread: Thread | null) => void;
 }) {
   const { threads } = useThreads();
@@ -108,21 +121,25 @@ function AppSidebarThreads({
       <ThreadGroup
         label="Today"
         setThreadToDelete={setThreadToDelete}
+        setThreadToEdit={setThreadToEdit}
         threads={groups.today}
       />
       <ThreadGroup
         label="Yesterday"
         setThreadToDelete={setThreadToDelete}
+        setThreadToEdit={setThreadToEdit}
         threads={groups.yesterday}
       />
       <ThreadGroup
         label="Last 30 Days"
         setThreadToDelete={setThreadToDelete}
+        setThreadToEdit={setThreadToEdit}
         threads={groups.lastThirtyDays}
       />
       <ThreadGroup
         label="History"
         setThreadToDelete={setThreadToDelete}
+        setThreadToEdit={setThreadToEdit}
         threads={groups.history}
       />
       <p className="p-4 text-muted-foreground/50 text-sm">
@@ -135,10 +152,12 @@ function AppSidebarThreads({
 function ThreadGroup({
   threads,
   label,
+  setThreadToEdit,
   setThreadToDelete,
 }: {
   threads: Thread[];
   label: string;
+  setThreadToEdit: (thread: Thread) => void;
   setThreadToDelete: (thread: Thread) => void;
 }) {
   if (threads.length === 0) {
@@ -153,6 +172,7 @@ function ThreadGroup({
             <ThreadItem
               key={thread._id}
               setThreadToDelete={setThreadToDelete}
+              setThreadToEdit={setThreadToEdit}
               thread={thread}
             />
           ))}
@@ -164,9 +184,11 @@ function ThreadGroup({
 
 function ThreadItem({
   thread,
+  setThreadToEdit,
   setThreadToDelete,
 }: {
   thread: Thread;
+  setThreadToEdit: (thread: Thread) => void;
   setThreadToDelete: (thread: Thread) => void;
 }) {
   const threadId = useParamsThreadId();
@@ -206,6 +228,19 @@ function ThreadItem({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  className="size-6 hover:bg-transparent hover:text-primary"
+                  onClick={() => setThreadToEdit(thread)}
+                  size="icon"
+                  variant="ghost"
+                >
+                  <PencilIcon className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Edit Thread Title</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
                   className="size-6 hover:text-primary"
                   onClick={() => setThreadToDelete(thread)}
                   size="icon"
@@ -220,6 +255,136 @@ function ThreadItem({
         </div>
       </SidebarMenuButton>
     </SidebarMenuItem>
+  );
+}
+
+const MAX_THREAD_TITLE_LENGTH = 100;
+const MIN_THREAD_TITLE_LENGTH = 1;
+const editThreadTitleSchema = z.object({
+  title: z
+    .string()
+    .min(
+      MIN_THREAD_TITLE_LENGTH,
+      `Title must be at least ${MIN_THREAD_TITLE_LENGTH} characters`
+    )
+    .max(
+      MAX_THREAD_TITLE_LENGTH,
+      `Title must be less than ${MAX_THREAD_TITLE_LENGTH} characters`
+    ),
+});
+
+function EditThreadTitleDialog({
+  thread,
+  setThreadToEdit,
+}: {
+  thread: Thread | null;
+  setThreadToEdit: (thread: Thread | null) => void;
+}) {
+  const { updateThread } = useThreads();
+  const form = useForm({
+    defaultValues: {
+      title: thread?.title ?? "",
+    },
+    validators: {
+      onMount: editThreadTitleSchema,
+      onChange: editThreadTitleSchema,
+      onSubmit: editThreadTitleSchema,
+    },
+    onSubmit: ({ value }) => {
+      if (!thread) {
+        return;
+      }
+
+      updateThread({
+        threadId: thread._id,
+        title: value.title,
+      });
+
+      setThreadToEdit(null);
+    },
+  });
+
+  return (
+    <Dialog onOpenChange={() => setThreadToEdit(null)} open={!!thread}>
+      <DialogContent
+        className="gap-0 overflow-hidden p-0"
+        showCloseButton={false}
+      >
+        <DialogHeader className="border-foreground/10 border-b bg-sidebar p-6">
+          <DialogTitle>Edit Thread Title</DialogTitle>
+          <DialogDescription>Edit the title of the thread.</DialogDescription>
+        </DialogHeader>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            await form.handleSubmit();
+          }}
+        >
+          <div className="grid gap-4 bg-background px-6 py-4">
+            <div className="grid gap-2">
+              <form.Field
+                name="title"
+                validators={{
+                  onChange: ({ value }) => {
+                    if (value.length === 0) {
+                      return "Title is required";
+                    }
+                    if (value.length > MAX_THREAD_TITLE_LENGTH) {
+                      return `Title must be less than ${MAX_THREAD_TITLE_LENGTH} characters`;
+                    }
+                  },
+                }}
+              >
+                {(field) => (
+                  <>
+                    <Label>Title</Label>
+                    <input
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      value={field.state.value}
+                    />
+                    {field.state.meta.errors ? (
+                      <p className="text-destructive text-sm">
+                        {field.state.meta.errors.join(", ")}
+                      </p>
+                    ) : null}
+                  </>
+                )}
+              </form.Field>
+            </div>
+          </div>
+          <DialogFooter className="border-foreground/10 border-t bg-sidebar px-6 py-4">
+            <Button
+              onClick={() => setThreadToEdit(null)}
+              type="button"
+              variant="outline"
+            >
+              Cancel
+            </Button>
+            <form.Subscribe
+              selector={(state) => ({
+                canSubmit: state.canSubmit,
+                isSubmitting: state.isSubmitting,
+              })}
+            >
+              {({ canSubmit, isSubmitting }) => (
+                <Button
+                  disabled={!canSubmit || isSubmitting}
+                  onClick={() => form.handleSubmit()}
+                  type="submit"
+                >
+                  <Activity mode={isSubmitting ? "visible" : "hidden"}>
+                    <Spinner />
+                  </Activity>
+                  <span>Save</span>
+                </Button>
+              )}
+            </form.Subscribe>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
