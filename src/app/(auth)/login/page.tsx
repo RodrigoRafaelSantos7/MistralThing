@@ -102,6 +102,7 @@ const Page = () => {
         form.handleSubmit();
       }}
     >
+      <title>Welcome Back</title>
       <div className="col-span-1 row-span-3 flex max-w-md flex-col items-center justify-center gap-6 rounded-2x">
         <div className="flex min-w-[280px] flex-col items-center gap-2 md:min-w-[350px]">
           <DynamicImage

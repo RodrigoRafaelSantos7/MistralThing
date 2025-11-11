@@ -1,11 +1,14 @@
 import { createClient, type GenericCtx } from "@convex-dev/better-auth";
 import { convex } from "@convex-dev/better-auth/plugins";
+import { requireActionCtx } from "@convex-dev/better-auth/utils";
 import { betterAuth } from "better-auth";
+import { magicLink } from "better-auth/plugins";
+import { query } from "@/convex/_generated/server";
+import { sendMagicLink } from "@/convex/email/email";
 import { components } from "./_generated/api";
 import type { DataModel } from "./_generated/dataModel";
 
-// biome-ignore lint/style/noNonNullAssertion: SITE_URL is set in the environment variables
-const siteUrl = process.env.SITE_URL!;
+const siteUrl = process.env.SITE_URL as string;
 
 export const authComponent = createClient<DataModel>(components.betterAuth);
 
@@ -31,5 +34,38 @@ export const createAuth = (
         prompt: "select_account consent",
       },
     },
-    plugins: [convex()],
+    plugins: [
+      convex(),
+      magicLink({
+        sendMagicLink: async ({ email, url }) => {
+          await sendMagicLink(requireActionCtx(ctx), {
+            to: email,
+            url,
+          });
+        },
+      }),
+    ],
   });
+
+export const getCurrentUser = query({
+  handler: async (ctx) => authComponent.getAuthUser(ctx),
+});
+
+/**
+ * Retrieves the current authenticated user's session.
+ *
+ * @returns The current session or null if not authenticated
+ */
+export const getSession = query({
+  handler: async (ctx) => {
+    const { auth, headers } = await authComponent.getAuth(createAuth, ctx);
+    try {
+      const session = await auth.api.getSession({
+        headers,
+      });
+      return session;
+    } catch {
+      return null;
+    }
+  },
+});
