@@ -58,7 +58,7 @@ export const getAllThreadsOfUser = query({
           .withIndex("by_threadId_updatedAt", (q) =>
             q.eq("threadId", thread._id)
           )
-          .order("desc")
+          .order("asc")
           .collect();
 
         return {
@@ -111,61 +111,13 @@ export const getThreadById = query({
       .withIndex("by_threadId_updatedAt", (q) =>
         q.eq("threadId", args.threadId)
       )
-      .order("desc")
+      .order("asc")
       .collect();
 
     return {
       ...thread,
       messages,
     };
-  },
-});
-
-export const getMessageById = query({
-  args: {
-    messageId: v.id("message"),
-  },
-  returns: messageValidator,
-  handler: async (ctx, args) => {
-    const user = await authComponent.getAuthUser(ctx);
-
-    if (!user) {
-      throw new ConvexError({
-        code: 401,
-        message: "User not found",
-        severity: "high",
-      });
-    }
-
-    const message = await ctx.db.get(args.messageId);
-
-    if (!message) {
-      throw new ConvexError({
-        code: 404,
-        message: "Message not found",
-        severity: "high",
-      });
-    }
-
-    const thread = await ctx.db.get(message.threadId);
-
-    if (!thread) {
-      throw new ConvexError({
-        code: 404,
-        message: "Thread not found",
-        severity: "high",
-      });
-    }
-
-    if (thread.userId !== (user._id as string)) {
-      throw new ConvexError({
-        code: 403,
-        message: "You are not allowed to access this message",
-        severity: "high",
-      });
-    }
-
-    return message;
   },
 });
 
@@ -263,5 +215,56 @@ export const deleteThread = mutation({
     await ctx.db.delete(args.threadId);
 
     return null;
+  },
+});
+
+export const createMessage = mutation({
+  args: {
+    threadId: v.id("thread"),
+    content: v.string(),
+  },
+  returns: v.id("message"),
+  handler: async (ctx, args) => {
+    const user = await authComponent.getAuthUser(ctx);
+
+    if (!user) {
+      throw new ConvexError({
+        code: 401,
+        message: "User not found",
+        severity: "high",
+      });
+    }
+
+    const thread = await ctx.db.get(args.threadId);
+
+    if (!thread) {
+      throw new ConvexError({
+        code: 404,
+        message: "Thread not found",
+        severity: "high",
+      });
+    }
+
+    if (thread.userId !== (user._id as string)) {
+      throw new ConvexError({
+        code: 403,
+        message: "You are not allowed to add messages to this thread",
+        severity: "high",
+      });
+    }
+
+    const messageId = await ctx.db.insert("message", {
+      threadId: args.threadId,
+      role: "user",
+      content: args.content,
+      updatedAt: Date.now(),
+    });
+
+    await ctx.db.patch(args.threadId, {
+      messages: [...thread.messages, messageId],
+      updatedAt: Date.now(),
+    });
+
+    return messageId;
   },
 });

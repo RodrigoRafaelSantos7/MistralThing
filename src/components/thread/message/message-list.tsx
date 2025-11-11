@@ -1,7 +1,11 @@
+"use client";
+
 import { useEffect, useRef } from "react";
 import { StickToBottom, useStickToBottom } from "use-stick-to-bottom";
-import type { VirtualizerHandle } from "virtua";
+import { Virtualizer, type VirtualizerHandle } from "virtua";
 import { MessageItem } from "@/components/thread/message/message-item";
+import { MultiModalInput } from "@/components/thread/multi-modal-input";
+import { useAutoResume } from "@/hooks/use-auto-resume";
 import type { Thread } from "@/types/thread";
 
 const MESSAGE_LIST_SCROLL_DELAY = 100;
@@ -19,6 +23,8 @@ export function MessageList({ thread }: { thread: Thread }) {
     initial: "instant",
     resize: isStreaming ? "smooth" : "instant",
   });
+
+  useAutoResume();
 
   useEffect(() => {
     if (mounted.current || !instance.scrollRef) {
@@ -45,9 +51,17 @@ export function MessageList({ thread }: { thread: Thread }) {
       className="absolute top-0 right-0 bottom-4 left-0"
       instance={instance}
     >
-      {messageIds.map((id) => (
-        <MessageItem id={id} key={id} />
-      ))}
+      <Virtualizer
+        as={StickToBottom.Content}
+        ref={ref}
+        scrollRef={instance.scrollRef}
+        ssrCount={5}
+      >
+        {messageIds.map((id) => (
+          <MessageItem id={id} key={id} />
+        ))}
+        <MultiModalInput />
+      </Virtualizer>
     </StickToBottom>
   );
 }
