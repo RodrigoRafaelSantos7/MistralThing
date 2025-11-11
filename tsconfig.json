@@ -19,10 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@/convex/*": ["./convex/*"]
-    },
-    "strictNullChecks": true
+      "@/*": ["./src/*"]
+    }
   },
   "include": [
     "next-env.d.ts",
