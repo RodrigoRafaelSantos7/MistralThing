@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "convex/react";
 import { useModelsContext } from "@/components/providers/models-provider";
 import { useSessionsContext } from "@/components/providers/sessions-provider";
 import { useSettingsContext } from "@/components/providers/settings-provider";
+import { useThreadsContext } from "@/components/providers/threads-provider";
 import { useUserContext } from "@/components/providers/user-provider";
 import { api } from "@/convex/_generated/api";
 import { useSession } from "@/hooks/use-session";
@@ -58,6 +59,62 @@ export function useSessions() {
   const sessions = context?.sessions ?? sessionsFromQuery;
 
   return sessions;
+}
+
+export function useThreads() {
+  const context = useThreadsContext();
+  const { data: session } = useSession();
+  const threadsFromQuery = useQuery(
+    api.threads.getAllThreadsOfUser,
+    session ? {} : "skip"
+  );
+  const threads = context?.threads ?? threadsFromQuery;
+
+  const updateTitle = useMutation(api.threads.updateTitle).withOptimisticUpdate(
+    (localStore, args) => {
+      const currentThreads = localStore.getQuery(
+        api.threads.getAllThreadsOfUser,
+        {}
+      );
+      if (currentThreads !== undefined && currentThreads !== null) {
+        const updatedThreads = currentThreads.map((thread) =>
+          thread._id === args.threadId
+            ? {
+                ...thread,
+                title: args.title,
+                updatedAt: Date.now(),
+              }
+            : thread
+        );
+        localStore.setQuery(
+          api.threads.getAllThreadsOfUser,
+          {},
+          updatedThreads
+        );
+      }
+    }
+  );
+
+  const deleteThread = useMutation(
+    api.threads.deleteThread
+  ).withOptimisticUpdate((localStore, args) => {
+    const currentThreads = localStore.getQuery(
+      api.threads.getAllThreadsOfUser,
+      {}
+    );
+    if (currentThreads !== undefined && currentThreads !== null) {
+      const updatedThreads = currentThreads.filter(
+        (thread) => thread._id !== args.threadId
+      );
+      localStore.setQuery(api.threads.getAllThreadsOfUser, {}, updatedThreads);
+    }
+  });
+
+  return {
+    threads,
+    updateTitle,
+    deleteThread,
+  };
 }
 
 export function useUser() {

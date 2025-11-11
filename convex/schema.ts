@@ -56,7 +56,13 @@ const schema = defineSchema({
   }).index("by_threadId_updatedAt", ["threadId", "updatedAt"]),
   thread: defineTable({
     userId: v.string(),
+    title: v.optional(v.string()),
     messages: v.array(v.id("message")),
+    status: v.union(
+      v.literal("ready"),
+      v.literal("streaming"),
+      v.literal("submitted")
+    ),
     updatedAt: v.number(),
   }).index("by_userId_updatedAt", ["userId", "updatedAt"]),
 });
