@@ -11,6 +11,12 @@ import { threadStatus } from "./schema";
  */
 export const listThreadsByUserId = query({
   args: {},
+  returns: v.array(
+    v.object({
+      thread: v.any(),
+      messages: v.array(v.any()),
+    })
+  ),
   handler: async (ctx) => {
     const user = await authComponent.getAuthUser(ctx);
 
@@ -29,7 +35,27 @@ export const listThreadsByUserId = query({
       )
       .collect();
 
-    return threads;
+    const messagesByThread = await Promise.all(
+      threads.map(async (thread) => {
+        const messages = await ctx.db
+          .query("message")
+          .withIndex("by_threadId_updatedAt", (q) =>
+            q.eq("threadId", thread._id)
+          )
+          .collect();
+        return { threadId: thread._id, messages };
+      })
+    );
+
+    // Map messages to their threads
+    const messagesMap = new Map(
+      messagesByThread.map(({ threadId, messages }) => [threadId, messages])
+    );
+
+    return threads.map((thread) => ({
+      thread,
+      messages: messagesMap.get(thread._id) ?? [],
+    }));
   },
 });
 
@@ -153,5 +179,47 @@ export const deleteThread = mutation({
     }
 
     await ctx.db.delete(args.threadId);
+  },
+});
+
+export const getThread = query({
+  args: { threadId: v.id("thread") },
+  handler: async (ctx, args) => {
+    const user = await authComponent.getAuthUser(ctx);
+
+    if (!user) {
+      throw new ConvexError({
+        code: 401,
+        message: "User not found. Please login to continue.",
+        severity: "high",
+      });
+    }
+
+    const thread = await ctx.db.get(args.threadId);
+
+    if (!thread) {
+      throw new ConvexError({
+        code: 404,
+        message: "Thread not found.",
+        severity: "high",
+      });
+    }
+
+    if (thread.userId !== user._id) {
+      throw new ConvexError({
+        code: 403,
+        message: "You are not authorized to get this thread.",
+        severity: "high",
+      });
+    }
+
+    const messages = await ctx.db
+      .query("message")
+      .withIndex("by_threadId_updatedAt", (q) =>
+        q.eq("threadId", args.threadId)
+      )
+      .collect();
+
+    return { thread, messages };
   },
 });
