@@ -3,7 +3,8 @@
 import { useForm } from "@tanstack/react-form";
 import { ArrowRightIcon, GithubIcon, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 import z from "zod";
 import { DynamicImage } from "@/components/app/dynamic-image";
 import GoogleIcon from "@/components/icons/google";
@@ -12,15 +13,20 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth-client";
+import { logger } from "@/lib/logger";
 import { indexPath, magicLinkPath } from "@/paths";
+
+const log = logger.child({ module: "login" });
 
 const schema = z.object({
   email: z.email(),
 });
 
-const SignInView = () => {
-  const [googlePending, startGoogleTransition] = useTransition();
-  const [githubPending, startGithubTransition] = useTransition();
+const Page = () => {
+  const [googlePending, setGooglePending] = useState(false);
+  const [githubPending, setGithubPending] = useState(false);
+  const [emailPending, setEmailPending] = useState(false);
+
   const router = useRouter();
 
   const form = useForm({
@@ -28,15 +34,25 @@ const SignInView = () => {
       email: "",
     },
     onSubmit: async ({ value }) => {
-      await authClient.signIn.magicLink({
-        email: value.email,
-        callbackURL: indexPath(),
-        fetchOptions: {
-          onSuccess: () => {
-            router.push(magicLinkPath());
+      setEmailPending(true);
+      await authClient.signIn
+        .magicLink({
+          email: value.email,
+          callbackURL: indexPath(),
+          fetchOptions: {
+            onSuccess: () => {
+              router.push(magicLinkPath());
+            },
           },
-        },
-      });
+        })
+        .catch((error) => {
+          log.error(error);
+          toast.error("Failed to sign in with email");
+          setEmailPending(false);
+        })
+        .finally(() => {
+          setEmailPending(false);
+        });
     },
     validators: {
       onMount: schema,
@@ -45,22 +61,38 @@ const SignInView = () => {
     },
   });
 
-  function signInWithGoogle() {
-    startGoogleTransition(async () => {
-      await authClient.signIn.social({
+  async function signInWithGoogle() {
+    setGooglePending(true);
+    await authClient.signIn
+      .social({
         provider: "google",
         callbackURL: indexPath(),
+      })
+      .catch((error) => {
+        log.error(error);
+        setGooglePending(false);
+        toast.error("Failed to sign in with Google");
+      })
+      .finally(() => {
+        setGooglePending(false);
       });
-    });
   }
 
-  function signInWithGitHub() {
-    startGithubTransition(async () => {
-      await authClient.signIn.social({
+  async function signInWithGitHub() {
+    setGithubPending(true);
+    await authClient.signIn
+      .social({
         provider: "github",
         callbackURL: indexPath(),
+      })
+      .catch((error) => {
+        log.error(error);
+        setGithubPending(false);
+        toast.error("Failed to sign in with GitHub");
+      })
+      .finally(() => {
+        setGithubPending(false);
       });
-    });
   }
   return (
     <form
@@ -110,7 +142,13 @@ const SignInView = () => {
             {({ isSubmitting, canSubmit }) => (
               <Button
                 className="w-full"
-                disabled={!canSubmit || isSubmitting}
+                disabled={
+                  !canSubmit ||
+                  isSubmitting ||
+                  emailPending ||
+                  githubPending ||
+                  googlePending
+                }
                 type="submit"
               >
                 <span className="text-primary-foreground">Continue</span>
@@ -136,7 +174,7 @@ const SignInView = () => {
         </div>
         <div className="flex w-full flex-col gap-2">
           <Button
-            disabled={googlePending}
+            disabled={googlePending || emailPending || githubPending}
             onClick={signInWithGoogle}
             variant="outline"
           >
@@ -150,7 +188,7 @@ const SignInView = () => {
             )}
           </Button>
           <Button
-            disabled={githubPending}
+            disabled={githubPending || emailPending || googlePending}
             onClick={signInWithGitHub}
             variant="outline"
           >
@@ -169,4 +207,4 @@ const SignInView = () => {
   );
 };
 
-export { SignInView };
+export default Page;

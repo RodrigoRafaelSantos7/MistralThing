@@ -5,6 +5,10 @@ export const metadata: Metadata = {
     "Get access to AI models from Mistral. Nearly unlimited tier is free!",
 };
 
-const Layout = ({ children }: { children: React.ReactNode }) => <>{children}</>;
+const Layout = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex h-full min-h-screen min-w-screen flex-col items-center justify-center">
+    {children}
+  </div>
+);
 
 export default Layout;
