@@ -1,6 +1,6 @@
 export type ModelIcon =
-  | "codestral-embed"
   | "codestral"
+  | "codestral-embed"
   | "devstral"
   | "embed"
   | "large"
@@ -8,7 +8,6 @@ export type ModelIcon =
   | "medium"
   | "ministral"
   | "nemo"
-  | "ocr"
   | "pixtral"
   | "small"
   | "voxtral";

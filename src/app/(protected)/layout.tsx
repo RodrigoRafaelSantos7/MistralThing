@@ -13,9 +13,14 @@ import { loginPath } from "@/paths";
 
 const ProtectedLayout = async ({ children }: { children: ReactNode }) => {
   const token = await getToken();
+
+  if (!token) {
+    redirect(loginPath());
+  }
+
   const session = await fetchQuery(api.users.getSession, {}, { token });
 
-  if (!(token && session)) {
+  if (!session) {
     redirect(loginPath());
   }
 

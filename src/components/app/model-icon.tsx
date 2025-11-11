@@ -1,18 +1,17 @@
 import type { SVGProps } from "react";
+import { Codestral } from "@/components/icons/codestral";
+import { CodestralEmbed } from "@/components/icons/codestral-embed";
+import { Devstral } from "@/components/icons/devstral";
+import { Embed } from "@/components/icons/embed";
+import { Large } from "@/components/icons/large";
+import { Magistral } from "@/components/icons/magistral";
+import { Medium } from "@/components/icons/medium";
+import { Ministral } from "@/components/icons/ministral";
 import { Nemo } from "@/components/icons/nemo";
+import { Pixtral } from "@/components/icons/pixtral";
+import { Small } from "@/components/icons/small";
 import { VoxtralIcon } from "@/components/icons/voxtral";
 import type { ModelIcon } from "@/types/model-icons";
-import { Codestral } from "../icons/codestral";
-import { CodestralEmbed } from "../icons/codestral-embed";
-import { Devstral } from "../icons/devstral";
-import { Embed } from "../icons/embed";
-import { Large } from "../icons/large";
-import { Magistral } from "../icons/magistral";
-import { Medium } from "../icons/medium";
-import { Ministral } from "../icons/ministral";
-import { OCR } from "../icons/ocr";
-import { Pixtral } from "../icons/pixtral";
-import { Small } from "../icons/small";
 
 interface ModelIconProps extends SVGProps<SVGSVGElement> {
   icon: ModelIcon;
@@ -23,8 +22,8 @@ const ModelIconComponent = ({ icon, ...props }: ModelIconProps) => {
     ModelIcon,
     React.ComponentType<SVGProps<SVGSVGElement>>
   > = {
-    "codestral-embed": CodestralEmbed,
     codestral: Codestral,
+    "codestral-embed": CodestralEmbed,
     devstral: Devstral,
     embed: Embed,
     large: Large,
@@ -32,7 +31,6 @@ const ModelIconComponent = ({ icon, ...props }: ModelIconProps) => {
     medium: Medium,
     ministral: Ministral,
     nemo: Nemo,
-    ocr: OCR,
     pixtral: Pixtral,
     small: Small,
     voxtral: VoxtralIcon,

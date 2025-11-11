@@ -1,7 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { authComponent } from "./auth";
-import { models } from "./schema";
+import { modes, themes } from "./schema";
 
 /**
  * Retrieves the user's settings with authorization checks.
@@ -38,20 +38,10 @@ export const get = query({
 
 export const update = mutation({
   args: {
-    mode: v.optional(v.union(v.literal("light"), v.literal("dark"))),
-    theme: v.optional(
-      v.union(
-        v.literal("default"),
-        v.literal("t3-chat"),
-        v.literal("claymorphism"),
-        v.literal("claude"),
-        v.literal("graphite"),
-        v.literal("amethyst-haze"),
-        v.literal("vercel")
-      )
-    ),
-    modelId: v.optional(models),
-    pinnedModels: v.optional(v.array(models)),
+    mode: v.optional(modes),
+    theme: v.optional(themes),
+    modelId: v.optional(v.string()),
+    pinnedModels: v.optional(v.array(v.string())),
     nickname: v.optional(v.string()),
     biography: v.optional(v.string()),
     instructions: v.optional(v.string()),
