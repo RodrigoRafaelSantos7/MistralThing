@@ -122,4 +122,25 @@ export const getSession = query({
   },
 });
 
+/**
+ * Lists the current authenticated user's sessions.
+ *
+ * @returns The current user's sessions or an empty array if not authenticated
+ */
+export const listSessions = query({
+  handler: async (ctx) => {
+    const { auth, headers } = await authComponent.getAuth(createAuth, ctx);
+
+    try {
+      const sessions = await auth.api.listSessions({
+        headers,
+      });
+      return sessions;
+    } catch (error) {
+      console.error("Error listing sessions:", error);
+      return [];
+    }
+  },
+});
+
 export const { onCreate, onUpdate, onDelete } = authComponent.triggersApi();

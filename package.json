@@ -13,6 +13,8 @@
   "dependencies": {
     "@convex-dev/better-auth": "^0.9.7",
     "@convex-dev/resend": "^0.1.13",
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-separator": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",
     "@react-email/components": "^1.0.0",
@@ -24,7 +26,9 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "convex": "^1.29.0",
+    "date-fns": "^4.1.0",
     "lucide-react": "^0.553.0",
+    "motion": "^12.23.24",
     "next": "16.0.1",
     "next-themes": "^0.4.6",
     "pino": "^10.1.0",
@@ -34,6 +38,7 @@
     "react-email": "^5.0.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
+    "ua-parser-js": "^2.0.6",
     "zod": "^4.1.12"
   },
   "devDependencies": {
