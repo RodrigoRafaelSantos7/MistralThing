@@ -1,4 +1,5 @@
 import { ModelSelector } from "@/components/app/model-selector";
+import { ThemeSelector } from "@/components/app/theme-selector";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
@@ -16,7 +17,9 @@ export function Header() {
         <SidebarTrigger />
         <ModelSelector />
       </div>
-      <div className="flex items-center gap-2 p-3" />
+      <div className="flex items-center gap-2 p-3">
+        <ThemeSelector />
+      </div>
     </div>
   );
 }
