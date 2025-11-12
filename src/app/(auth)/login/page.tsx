@@ -43,6 +43,11 @@ const Page = () => {
             onSuccess: () => {
               router.push(magicLinkPath());
             },
+            onError: (error) => {
+              log.error(error);
+              toast.error("Failed to send the magic link. Please try again!");
+              setEmailPending(false);
+            },
           },
         })
         .catch((error) => {
