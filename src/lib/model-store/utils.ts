@@ -14,5 +14,4 @@ export type ModelType = {
 
 export type ModelContextType = {
   models: ModelType[];
-  isLoading: boolean;
 };

@@ -4,18 +4,13 @@ import { toast } from "sonner";
 import ModelIcon from "@/components/app/model-icon";
 import { CapabilityBadges } from "@/components/ui/capability-badge";
 import { Section } from "@/components/ui/section";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { useModel } from "@/lib/model-store/provider";
 import { useUserSettings } from "@/lib/user-settings-store/provider";
 
 const Page = () => {
-  const {
-    settings,
-    updateSettings,
-    isLoading: isSettingsLoading,
-  } = useUserSettings();
-  const { models, isLoading } = useModel();
+  const { settings, updateSettings } = useUserSettings();
+  const { models } = useModel();
 
   const currentPinned = settings.pinnedModels || [];
   const activeModelCount = currentPinned.length;
@@ -56,77 +51,46 @@ const Page = () => {
         title="Available Models"
       >
         <div className="space-y-3">
-          {isLoading || isSettingsLoading ? (
-            <ModelsSkeleton />
-          ) : (
-            models.map((model) => (
-              <div
-                className="flex flex-col overflow-hidden rounded-lg border bg-card backdrop-blur-md"
-                key={model.modelId}
-              >
-                <div className="flex flex-1 gap-4 border-b p-4">
-                  <ModelIcon
-                    className="size-12 fill-primary"
-                    modelId={model.modelId}
-                  />
+          {models.map((model) => (
+            <div
+              className="flex flex-col overflow-hidden rounded-lg border bg-card backdrop-blur-md"
+              key={model.modelId}
+            >
+              <div className="flex flex-1 gap-4 border-b p-4">
+                <ModelIcon
+                  className="size-12 fill-primary"
+                  modelId={model.modelId}
+                />
 
-                  <div className="flex flex-1 gap-1">
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{model.name}</span>
-                      </div>
-                      <p className="text-muted-foreground text-sm">
-                        {model.description}
-                      </p>
+                <div className="flex flex-1 gap-1">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{model.name}</span>
                     </div>
-                    <Switch
-                      checked={isPinned(model.modelId)}
-                      className="ml-auto"
-                      disabled={
-                        isPinned(model.modelId) && activeModelCount <= 1
-                      }
-                      onCheckedChange={(checked) =>
-                        handleModelToggle(model.modelId, model.name, checked)
-                      }
-                    />
+                    <p className="text-muted-foreground text-sm">
+                      {model.description}
+                    </p>
                   </div>
-                </div>
-
-                <div className="flex items-center justify-between gap-3 bg-sidebar p-4">
-                  <CapabilityBadges capabilities={model.capabilities} />
+                  <Switch
+                    checked={isPinned(model.modelId)}
+                    className="ml-auto"
+                    disabled={isPinned(model.modelId) && activeModelCount <= 1}
+                    onCheckedChange={(checked) =>
+                      handleModelToggle(model.modelId, model.name, checked)
+                    }
+                  />
                 </div>
               </div>
-            ))
-          )}
+
+              <div className="flex items-center justify-between gap-3 bg-sidebar p-4">
+                <CapabilityBadges capabilities={model.capabilities} />
+              </div>
+            </div>
+          ))}
         </div>
       </Section>
     </div>
   );
 };
-
-const ModelsSkeleton = () => (
-  <>
-    {["skeleton-1", "skeleton-2", "skeleton-3", "skeleton-4"].map((id) => (
-      <div
-        className="flex flex-col overflow-hidden rounded-lg border bg-card backdrop-blur-md"
-        key={id}
-      >
-        <div className="flex flex-1 gap-4 border-b p-4">
-          <Skeleton className="size-12 shrink-0" />
-
-          <div className="flex flex-1 gap-1">
-            <div className="flex flex-1 flex-col gap-2">
-              <Skeleton className="h-5 w-32" />
-              <Skeleton className="h-4 w-full max-w-md" />
-            </div>
-            <Skeleton className="ml-auto h-6 w-11 shrink-0 rounded-full" />
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between gap-3 bg-sidebar p-4" />
-      </div>
-    ))}
-  </>
-);
 
 export default Page;

@@ -1,13 +1,13 @@
 "use client";
 
-import { useMutation, useQuery } from "convex/react";
+import { type Preloaded, useMutation, usePreloadedQuery } from "convex/react";
 import { createContext, useContext } from "react";
 import { api } from "@/convex/_generated/api";
-import { defaultSettings, type UserSettingsType } from "./utils";
+import type { UserSettingsType } from "./utils";
+import { defaultSettings } from "./utils";
 
 type UserSettingsContextType = {
   settings: UserSettingsType;
-  isLoading: boolean;
   updateSettings: (args: Partial<UserSettingsType>) => void;
 };
 
@@ -28,19 +28,10 @@ export function UserSettingsProvider({
   initialSettings,
 }: {
   children: React.ReactNode;
-  initialSettings?: UserSettingsType | null;
+  initialSettings: Preloaded<typeof api.settings.get>;
 }) {
-  const getInitialData = (): UserSettingsType => {
-    if (initialSettings) {
-      return initialSettings;
-    }
-
-    return defaultSettings;
-  };
-
-  const settingsQueryResult = useQuery(api.settings.get, {});
-  const isLoading = settingsQueryResult === undefined;
-  const settings = settingsQueryResult ?? getInitialData();
+  const settingsQueryResult = usePreloadedQuery(initialSettings);
+  const settings = settingsQueryResult ?? defaultSettings;
 
   const updateSettings = useMutation(api.settings.update).withOptimisticUpdate(
     (localStore, args) => {
@@ -66,9 +57,7 @@ export function UserSettingsProvider({
   );
 
   return (
-    <UserSettingsContext.Provider
-      value={{ settings, isLoading, updateSettings }}
-    >
+    <UserSettingsContext.Provider value={{ settings, updateSettings }}>
       {children}
     </UserSettingsContext.Provider>
   );

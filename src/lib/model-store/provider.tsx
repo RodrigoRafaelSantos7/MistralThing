@@ -1,18 +1,23 @@
 "use client";
 
-import { useQuery } from "convex/react";
+import { type Preloaded, usePreloadedQuery } from "convex/react";
 import { createContext, useContext } from "react";
-import { api } from "@/convex/_generated/api";
+import type { api } from "@/convex/_generated/api";
 import type { ModelContextType } from "@/lib/model-store/utils";
 
 const ModelContext = createContext<ModelContextType | undefined>(undefined);
 
-export function ModelsProvider({ children }: { children: React.ReactNode }) {
-  const models = useQuery(api.models.list) ?? [];
-  const isLoading = models === undefined;
+export function ModelsProvider({
+  initialModels,
+  children,
+}: {
+  initialModels: Preloaded<typeof api.models.list>;
+  children: React.ReactNode;
+}) {
+  const models = usePreloadedQuery(initialModels);
 
   return (
-    <ModelContext.Provider value={{ models, isLoading }}>
+    <ModelContext.Provider value={{ models: models ?? [] }}>
       {children}
     </ModelContext.Provider>
   );
