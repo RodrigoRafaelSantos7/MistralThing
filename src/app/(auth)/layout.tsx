@@ -6,6 +6,10 @@ import { getToken } from "@/lib/auth-server";
 import { indexPath } from "@/paths";
 
 export const metadata: Metadata = {
+  title: {
+    default: "Welcome Back",
+    template: "%s | Mistral Thing",
+  },
   description:
     "Get access to AI models from Mistral. Nearly unlimited tier is free!",
 };

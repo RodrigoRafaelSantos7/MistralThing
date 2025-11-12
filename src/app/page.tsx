@@ -14,7 +14,11 @@ export default function Home() {
           <h1>Hello World</h1>
           <Button
             onClick={() =>
-              authClient.signOut().then(() => router.push("/login"))
+              authClient.signOut({
+                fetchOptions: {
+                  onSuccess: () => router.push("/logged-out"),
+                },
+              })
             }
           >
             Logout
