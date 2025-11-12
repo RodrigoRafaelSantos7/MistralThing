@@ -42,5 +42,7 @@ export default defineSchema({
     model: v.string(),
     title: v.string(),
     userId: v.string(),
-  }),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_userId_updatedAt", ["userId", "updatedAt"]),
 });

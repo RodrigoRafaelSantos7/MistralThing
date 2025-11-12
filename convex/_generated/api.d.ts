@@ -9,6 +9,7 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as chats from "../chats.js";
 import type * as email_email from "../email/email.js";
 import type * as email_template from "../email/template.js";
 import type * as http from "../http.js";
@@ -24,6 +25,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  chats: typeof chats;
   "email/email": typeof email_email;
   "email/template": typeof email_template;
   http: typeof http;
