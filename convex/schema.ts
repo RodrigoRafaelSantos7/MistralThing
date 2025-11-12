@@ -37,4 +37,10 @@ export default defineSchema({
       classification: v.optional(v.boolean()),
     }),
   }).index("by_modelId", ["modelId"]),
+  chat: defineTable({
+    updatedAt: v.number(),
+    model: v.string(),
+    title: v.string(),
+    userId: v.string(),
+  }),
 });
