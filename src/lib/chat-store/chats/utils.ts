@@ -1,10 +1,3 @@
-import type { Id } from "@/convex/_generated/dataModel";
+import type { Doc } from "@/convex/_generated/dataModel";
 
-export type Chat = {
-  id: Id<"chat">;
-  model: string;
-  title: string;
-  userId: string;
-  updatedAt: number;
-  createdAt: number;
-};
+export type Chat = Doc<"chat">;

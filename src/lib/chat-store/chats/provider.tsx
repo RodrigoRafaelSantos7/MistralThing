@@ -3,19 +3,20 @@
 import { type Preloaded, useMutation, usePreloadedQuery } from "convex/react";
 import { createContext, useContext } from "react";
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import type { Chat } from "./utils";
 
 type ChatsContextType = {
   chats: Chat[];
   createChat: (args: { title: string; model: string }) => void;
   updateChat: (args: {
-    id: Chat["id"];
+    id: Id<"chat">;
     title?: string;
     model?: string;
     updatedAt?: number;
   }) => void;
-  removeChat: (args: { id: Chat["id"] }) => void;
-  getChatById: (id: Chat["id"]) => Chat | undefined;
+  removeChat: (args: { id: Id<"chat"> }) => void;
+  getChatById: (id: Id<"chat">) => Chat | undefined;
 };
 
 const ChatsContext = createContext<ChatsContextType | null>(null);
@@ -36,11 +37,11 @@ export function ChatsProvider({
       if (currentChats !== undefined && currentChats !== null) {
         const now = Date.now();
         const tempChat: Chat = {
-          id: `temp-${now}` as Chat["id"],
+          _id: `temp-${now}` as Id<"chat">,
+          _creationTime: now,
           title: args.title,
           model: args.model,
           userId: "",
-          createdAt: now,
           updatedAt: now,
         };
         const updatedChats = [tempChat, ...currentChats];
@@ -54,7 +55,7 @@ export function ChatsProvider({
       const currentChats = localStore.getQuery(api.chats.getAll, {});
       if (currentChats !== undefined && currentChats !== null) {
         const updatedChats = currentChats.map((chat) =>
-          chat.id === args.id
+          chat._id === args.id
             ? {
                 ...chat,
                 ...(args.title !== undefined && { title: args.title }),
@@ -74,13 +75,15 @@ export function ChatsProvider({
     (localStore, args) => {
       const currentChats = localStore.getQuery(api.chats.getAll, {});
       if (currentChats !== undefined && currentChats !== null) {
-        const updatedChats = currentChats.filter((chat) => chat.id !== args.id);
+        const updatedChats = currentChats.filter(
+          (chat) => chat._id !== args.id
+        );
         localStore.setQuery(api.chats.getAll, {}, updatedChats);
       }
     }
   );
 
-  const getChatById = (id: Chat["id"]) => chats.find((chat) => chat.id === id);
+  const getChatById = (id: Id<"chat">) => chats.find((chat) => chat._id === id);
 
   return (
     <ChatsContext.Provider

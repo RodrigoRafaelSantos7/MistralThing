@@ -3,19 +3,6 @@ import { mutation, query } from "@/convex/_generated/server";
 import { authComponent } from "@/convex/auth";
 
 export const getAll = query({
-  returns: v.union(
-    v.array(
-      v.object({
-        id: v.string(),
-        title: v.string(),
-        model: v.string(),
-        userId: v.string(),
-        createdAt: v.number(),
-        updatedAt: v.number(),
-      })
-    ),
-    v.null()
-  ),
   handler: async (ctx) => {
     const user = await authComponent.getAuthUser(ctx).catch(() => null);
 
@@ -31,14 +18,7 @@ export const getAll = query({
       .order("desc")
       .collect();
 
-    return chats.map((chat) => ({
-      id: chat._id,
-      title: chat.title,
-      model: chat.model,
-      userId: chat.userId,
-      createdAt: chat._creationTime,
-      updatedAt: chat.updatedAt,
-    }));
+    return chats;
   },
 });
 
@@ -46,17 +26,6 @@ export const getOne = query({
   args: {
     id: v.id("chat"),
   },
-  returns: v.union(
-    v.object({
-      id: v.string(),
-      title: v.string(),
-      model: v.string(),
-      userId: v.string(),
-      createdAt: v.number(),
-      updatedAt: v.number(),
-    }),
-    v.null()
-  ),
   handler: async (ctx, args) => {
     const user = await authComponent.getAuthUser(ctx).catch(() => null);
 
@@ -74,14 +43,7 @@ export const getOne = query({
       });
     }
 
-    return {
-      id: chat._id,
-      title: chat.title,
-      model: chat.model,
-      userId: chat.userId,
-      createdAt: chat._creationTime,
-      updatedAt: chat.updatedAt,
-    };
+    return chat;
   },
 });
 
@@ -120,6 +82,7 @@ export const update = mutation({
     model: v.optional(v.string()),
     updatedAt: v.optional(v.number()),
   },
+  returns: v.null(),
   handler: async (ctx, args) => {
     const user = await authComponent.getAuthUser(ctx).catch(() => null);
 
@@ -149,7 +112,10 @@ export const update = mutation({
       });
     }
 
-    return await ctx.db.patch(chat._id, args);
+    const { id: _id, ...updateFields } = args;
+    await ctx.db.patch(chat._id, updateFields);
+
+    return null;
   },
 });
 

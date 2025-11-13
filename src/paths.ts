@@ -12,3 +12,6 @@ export const accountSubscriptionPath = () => "/account/subscription";
 export const accountPreferencesPath = () => "/account/preferences";
 export const accountModelsPath = () => "/account/models";
 export const accountAppearancePath = () => "/account/appearance";
+
+// (Protected)/(chat)
+export const chatPath = (chatId: string) => `/c/${chatId}`;
