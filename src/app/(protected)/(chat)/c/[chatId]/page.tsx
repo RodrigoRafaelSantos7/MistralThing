@@ -1,15 +1,10 @@
-"use client";
+import { LayoutApp } from "@/components/layout/layout-app";
+import { MessagesProvider } from "@/lib/chat-store/messages/provider";
 
-import { useChatSession } from "@/lib/chat-store/session/provider";
+const Page = () => (
+  <MessagesProvider>
+    <LayoutApp>Edit Chat Title Delete Chat</LayoutApp>
+  </MessagesProvider>
+);
 
-const ChatPage = () => {
-  const currentChatId = useChatSession();
-  return (
-    <div className="mt-60">
-      Edit Chat Title Delete Chat
-      {currentChatId.chatId}
-    </div>
-  );
-};
-
-export default ChatPage;
+export default Page;
