@@ -37,7 +37,7 @@ export default function ChatWindow() {
   }
 
   return (
-    <div className="flex h-full flex-1 flex-col bg-white">
+    <div className="flex h-full flex-1 flex-col">
       <div
         className="flex-1 overflow-y-auto px-4 py-6 md:px-8 lg:px-12"
         ref={messageContainerRef}
