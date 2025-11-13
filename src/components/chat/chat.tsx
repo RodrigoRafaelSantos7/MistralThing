@@ -1,15 +1,15 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useMessages } from "@/lib/chat-store/messages/provider";
-import { useChatSession } from "@/lib/chat-store/session/provider";
+import { useMessages } from "@/lib/threads-store/messages/provider";
+import { useThreadSession } from "@/lib/threads-store/session/provider";
 import { cn } from "@/lib/utils";
 
 export function Chat() {
   const { messages } = useMessages();
-  const { chatId } = useChatSession();
+  const { threadId } = useThreadSession();
 
-  const showOnboarding = !chatId && messages.length === 0;
+  const showOnboarding = !threadId && messages.length === 0;
 
   return (
     <div

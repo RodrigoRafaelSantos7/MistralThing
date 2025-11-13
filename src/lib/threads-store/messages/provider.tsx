@@ -4,7 +4,7 @@ import { useQuery } from "convex/react";
 import { createContext, useContext } from "react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { useChatSession } from "@/lib/chat-store/session/provider";
+import { useThreadSession } from "@/lib/threads-store/session/provider";
 import type { Message } from "./utils";
 
 type MessagesContextType = {
@@ -14,10 +14,10 @@ type MessagesContextType = {
 const MessagesContext = createContext<MessagesContextType | null>(null);
 
 export function MessagesProvider({ children }: { children: React.ReactNode }) {
-  const { chatId } = useChatSession();
+  const { threadId } = useThreadSession();
   const messages = useQuery(
-    api.messages.listByChatId,
-    chatId ? { chatId: chatId as Id<"chat"> } : "skip"
+    api.messages.getMessagesForThread,
+    threadId ? { threadId: threadId as Id<"thread"> } : "skip"
   );
 
   return (

@@ -34,18 +34,17 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { Doc, Id } from "@/convex/_generated/dataModel";
-import { useChatsByTimeRange } from "@/hooks/use-chats-by-time-range";
-import { useChats } from "@/lib/chat-store/chats/provider";
-import { useChatSession } from "@/lib/chat-store/session/provider";
+import type { Id } from "@/convex/_generated/dataModel";
+import { useThreadsByTimeRange } from "@/hooks/use-chats-by-time-range";
+import { useThreadSession } from "@/lib/threads-store/session/provider";
+import { useThreads } from "@/lib/threads-store/threads/provider";
+import type { Thread } from "@/lib/threads-store/threads/utils";
 import { cn } from "@/lib/utils";
-import { chatPath, indexPath } from "@/paths";
-
-type Chat = Doc<"chat">;
+import { indexPath, threadPath } from "@/paths";
 
 export function AppSidebar() {
-  const [chatToEdit, setChatToEdit] = useState<Chat | null>(null);
-  const [chatToDelete, setChatToDelete] = useState<Chat | null>(null);
+  const [threadToEdit, setThreadToEdit] = useState<Thread | null>(null);
+  const [threadToDelete, setThreadToDelete] = useState<Thread | null>(null);
 
   return (
     <Sidebar>
@@ -53,13 +52,19 @@ export function AppSidebar() {
       <SidebarContent>
         <AppSidebarActions />
         <AppSidebarChats
-          setChatToDelete={setChatToDelete}
-          setChatToEdit={setChatToEdit}
+          setThreadToDelete={setThreadToDelete}
+          setThreadToEdit={setThreadToEdit}
         />
       </SidebarContent>
       <AppSidebarKeyboardShortcuts />
-      <EditChatTitleDialog chat={chatToEdit} setChatToEdit={setChatToEdit} />
-      <DeleteChatDialog chat={chatToDelete} setChatToDelete={setChatToDelete} />
+      <EditChatTitleDialog
+        setThreadToEdit={setThreadToEdit}
+        thread={threadToEdit}
+      />
+      <DeleteChatDialog
+        setThreadToDelete={setThreadToDelete}
+        thread={threadToDelete}
+      />
     </Sidebar>
   );
 }
@@ -104,8 +109,8 @@ function AppSidebarActions() {
 
 function AppSidebarKeyboardShortcuts() {
   const router = useRouter();
-  const currentChatId = useChatSession();
-  const { chats } = useChats();
+  const currentThreadId = useThreadSession();
+  const { threads } = useThreads();
 
   const onHandleKeyDown = useCallback(
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: This is a keyboard shortcut handler
@@ -123,28 +128,28 @@ function AppSidebarKeyboardShortcuts() {
         e.preventDefault();
         e.stopPropagation();
 
-        if (chats.length === 0) {
+        if (threads.length === 0) {
           return;
         }
 
-        const currentIndex = chats.findIndex(
-          (chat) => chat._id === currentChatId.chatId
+        const currentIndex = threads.findIndex(
+          (thread) => thread._id === currentThreadId.threadId
         );
 
         let nextIndex: number;
         if (e.key === "ArrowUp") {
-          nextIndex = currentIndex <= 0 ? chats.length - 1 : currentIndex - 1;
+          nextIndex = currentIndex <= 0 ? threads.length - 1 : currentIndex - 1;
         } else {
-          nextIndex = currentIndex >= chats.length - 1 ? 0 : currentIndex + 1;
+          nextIndex = currentIndex >= threads.length - 1 ? 0 : currentIndex + 1;
         }
 
-        const nextChat = chats[nextIndex];
-        if (nextChat) {
-          router.push(chatPath(nextChat._id));
+        const nextThread = threads[nextIndex];
+        if (nextThread) {
+          router.push(threadPath(nextThread._id));
         }
       }
     },
-    [chats, currentChatId, router]
+    [threads, currentThreadId, router]
   );
 
   useEffect(() => {
@@ -203,40 +208,40 @@ function AppSidebarKeyboardShortcuts() {
 }
 
 function AppSidebarChats({
-  setChatToEdit,
-  setChatToDelete,
+  setThreadToEdit,
+  setThreadToDelete,
 }: {
-  setChatToEdit: (chat: Chat | null) => void;
-  setChatToDelete: (chat: Chat | null) => void;
+  setThreadToEdit: (thread: Thread | null) => void;
+  setThreadToDelete: (thread: Thread | null) => void;
 }) {
-  const { chats } = useChats();
-  const groups = useChatsByTimeRange(chats);
+  const { threads } = useThreads();
+  const groups = useThreadsByTimeRange(threads);
 
   return (
     <Fragment>
       <ThreadGroup
-        chats={groups.today}
         label="Today"
-        setChatToDelete={setChatToDelete}
-        setChatToEdit={setChatToEdit}
+        setThreadToDelete={setThreadToDelete}
+        setThreadToEdit={setThreadToEdit}
+        threads={groups.today}
       />
       <ThreadGroup
-        chats={groups.yesterday}
         label="Yesterday"
-        setChatToDelete={setChatToDelete}
-        setChatToEdit={setChatToEdit}
+        setThreadToDelete={setThreadToDelete}
+        setThreadToEdit={setThreadToEdit}
+        threads={groups.yesterday}
       />
       <ThreadGroup
-        chats={groups.lastThirtyDays}
         label="Last 30 Days"
-        setChatToDelete={setChatToDelete}
-        setChatToEdit={setChatToEdit}
+        setThreadToDelete={setThreadToDelete}
+        setThreadToEdit={setThreadToEdit}
+        threads={groups.lastThirtyDays}
       />
       <ThreadGroup
-        chats={groups.history}
         label="History"
-        setChatToDelete={setChatToDelete}
-        setChatToEdit={setChatToEdit}
+        setThreadToDelete={setThreadToDelete}
+        setThreadToEdit={setThreadToEdit}
+        threads={groups.history}
       />
       <p className="p-4 text-muted-foreground/50 text-sm">
         You've reached the end of your threads.
@@ -246,17 +251,17 @@ function AppSidebarChats({
 }
 
 function ThreadGroup({
-  chats,
+  threads,
   label,
-  setChatToEdit,
-  setChatToDelete,
+  setThreadToEdit,
+  setThreadToDelete,
 }: {
-  chats: Chat[];
+  threads: Thread[];
   label: string;
-  setChatToEdit: (chat: Chat) => void;
-  setChatToDelete: (chat: Chat) => void;
+  setThreadToEdit: (thread: Thread) => void;
+  setThreadToDelete: (thread: Thread) => void;
 }) {
-  if (chats.length === 0) {
+  if (threads.length === 0) {
     return null;
   }
   return (
@@ -264,12 +269,12 @@ function ThreadGroup({
       <SidebarGroupLabel>{label}</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
-          {chats.map((chat) => (
-            <ChatItem
-              chat={chat}
-              key={chat._id}
-              setChatToDelete={setChatToDelete}
-              setChatToEdit={setChatToEdit}
+          {threads.map((thread) => (
+            <ThreadItem
+              key={thread._id}
+              setThreadToDelete={setThreadToDelete}
+              setThreadToEdit={setThreadToEdit}
+              thread={thread}
             />
           ))}
         </SidebarMenu>
@@ -278,16 +283,16 @@ function ThreadGroup({
   );
 }
 
-function ChatItem({
-  chat,
-  setChatToEdit,
-  setChatToDelete,
+function ThreadItem({
+  thread,
+  setThreadToEdit,
+  setThreadToDelete,
 }: {
-  chat: Chat;
-  setChatToEdit: (chat: Chat) => void;
-  setChatToDelete: (chat: Chat) => void;
+  thread: Thread;
+  setThreadToEdit: (thread: Thread) => void;
+  setThreadToDelete: (thread: Thread) => void;
 }) {
-  const currentChatId = useChatSession().chatId;
+  const currentThreadId = useThreadSession().threadId;
   const router = useRouter();
   return (
     <SidebarMenuItem>
@@ -296,18 +301,19 @@ function ChatItem({
           <Link
             className={cn(
               "absolute inset-0 flex w-full items-center gap-2 rounded-md px-2",
-              currentChatId === chat._id && "data-thread-active='true' bg-muted"
+              currentThreadId === thread._id &&
+                "data-thread-active='true' bg-muted"
             )}
-            href={chatPath(chat._id)}
+            href={threadPath(thread._id)}
             onMouseDown={(e) => {
               e.preventDefault();
               e.stopPropagation();
               if (e.button === 0) {
-                router.push(chatPath(chat._id));
+                router.push(threadPath(thread._id));
               }
             }}
           >
-            <span className="flex-1 truncate">{chat.title}</span>
+            <span className="flex-1 truncate">{thread.title}</span>
             {/* TODO: Add loading state */}
             {/**{(chat.status === "streaming" ||
               chat.status === "submitted") && (
@@ -320,7 +326,7 @@ function ChatItem({
               <TooltipTrigger asChild>
                 <Button
                   className="size-6 hover:bg-transparent hover:text-primary"
-                  onClick={() => setChatToEdit(chat)}
+                  onClick={() => setThreadToEdit(thread)}
                   size="icon"
                   variant="ghost"
                 >
@@ -333,7 +339,7 @@ function ChatItem({
               <TooltipTrigger asChild>
                 <Button
                   className="size-6 hover:text-primary"
-                  onClick={() => setChatToDelete(chat)}
+                  onClick={() => setThreadToDelete(thread)}
                   size="icon"
                   variant="ghost"
                 >
@@ -354,16 +360,16 @@ const editChatTitleSchema = z.object({
 });
 
 function EditChatTitleDialog({
-  chat,
-  setChatToEdit,
+  thread,
+  setThreadToEdit,
 }: {
-  chat: Chat | null;
-  setChatToEdit: (chat: Chat | null) => void;
+  thread: Thread | null;
+  setThreadToEdit: (thread: Thread | null) => void;
 }) {
-  const { updateChat } = useChats();
+  const { updateThread } = useThreads();
   const form = useForm({
     defaultValues: {
-      title: chat?.title ?? "",
+      title: thread?.title ?? "",
     },
     validators: {
       onMount: editChatTitleSchema,
@@ -371,20 +377,20 @@ function EditChatTitleDialog({
       onSubmit: editChatTitleSchema,
     },
     onSubmit: ({ value }) => {
-      if (!chat) {
+      if (!thread) {
         return;
       }
 
-      updateChat({
-        id: chat._id,
+      updateThread({
+        id: thread._id,
         title: value.title,
       });
-      setChatToEdit(null);
+      setThreadToEdit(null);
     },
   });
 
   return (
-    <Dialog onOpenChange={() => setChatToEdit(null)} open={!!chat}>
+    <Dialog onOpenChange={() => setThreadToEdit(null)} open={!!thread}>
       <DialogContent
         className="gap-0 overflow-hidden p-0"
         showCloseButton={false}
@@ -435,7 +441,7 @@ function EditChatTitleDialog({
           </div>
           <DialogFooter className="border-foreground/10 border-t bg-sidebar px-6 py-4">
             <Button
-              onClick={() => setChatToEdit(null)}
+              onClick={() => setThreadToEdit(null)}
               type="button"
               variant="outline"
             >
@@ -468,26 +474,26 @@ function EditChatTitleDialog({
 }
 
 function DeleteChatDialog({
-  chat,
-  setChatToDelete,
+  thread,
+  setThreadToDelete,
 }: {
-  chat: Chat | null;
-  setChatToDelete: (chat: Chat | null) => void;
+  thread: Thread | null;
+  setThreadToDelete: (thread: Thread | null) => void;
 }) {
-  const { removeChat } = useChats();
+  const { removeThread } = useThreads();
   const router = useRouter();
 
   function handleDelete() {
-    if (!chat) {
+    if (!thread) {
       return;
     }
-    removeChat({ id: chat._id as Id<"chat"> });
+    removeThread({ id: thread._id as Id<"thread"> });
     router.push(indexPath());
-    setChatToDelete(null);
+    setThreadToDelete(null);
   }
 
   return (
-    <Dialog onOpenChange={() => setChatToDelete(null)} open={!!chat}>
+    <Dialog onOpenChange={() => setThreadToDelete(null)} open={!!thread}>
       <DialogContent
         className="gap-0 overflow-hidden p-0"
         showCloseButton={false}
@@ -502,7 +508,7 @@ function DeleteChatDialog({
 
         <DialogFooter className="border-foreground/10 border-t bg-sidebar px-6 py-4">
           <Button
-            onClick={() => setChatToDelete(null)}
+            onClick={() => setThreadToDelete(null)}
             type="button"
             variant="outline"
           >

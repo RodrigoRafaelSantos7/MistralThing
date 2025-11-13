@@ -1,18 +1,18 @@
-import type { Chat } from "@/lib/chat-store/chats/utils";
+import type { Thread } from "@/lib/threads-store/threads/utils";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const DAYS_30 = 30;
 
-type ChatsByTimeRange = {
-  today: Chat[];
-  yesterday: Chat[];
-  lastThirtyDays: Chat[];
-  history: Chat[];
+type ThreadsByTimeRange = {
+  today: Thread[];
+  yesterday: Thread[];
+  lastThirtyDays: Thread[];
+  history: Thread[];
 };
 
-export function useChatsByTimeRange<T extends Chat>(
-  chatsArray: T[]
-): ChatsByTimeRange {
+export function useThreadsByTimeRange<T extends Thread>(
+  threadsArray: T[]
+): ThreadsByTimeRange {
   const now = Date.now();
 
   const timeBoundaries = {
@@ -21,25 +21,25 @@ export function useChatsByTimeRange<T extends Chat>(
     thirtyDaysAgo: now - DAYS_30 * MS_PER_DAY,
   };
 
-  const filterChatsByTimeRange = (startTime: number, endTime?: number) =>
-    chatsArray.filter((chat) => {
-      const chatTime = chat.updatedAt ?? 0;
+  const filterThreadsByTimeRange = (startTime: number, endTime?: number) =>
+    threadsArray.filter((thread) => {
+      const threadTime = thread.updatedAt ?? 0;
       return endTime
-        ? chatTime >= startTime && chatTime < endTime
-        : chatTime >= startTime;
+        ? threadTime >= startTime && threadTime < endTime
+        : threadTime >= startTime;
     });
 
   const groups = {
-    today: filterChatsByTimeRange(timeBoundaries.oneDayAgo),
-    yesterday: filterChatsByTimeRange(
+    today: filterThreadsByTimeRange(timeBoundaries.oneDayAgo),
+    yesterday: filterThreadsByTimeRange(
       timeBoundaries.twoDaysAgo,
       timeBoundaries.oneDayAgo
     ),
-    lastThirtyDays: filterChatsByTimeRange(
+    lastThirtyDays: filterThreadsByTimeRange(
       timeBoundaries.thirtyDaysAgo,
       timeBoundaries.twoDaysAgo
     ),
-    history: filterChatsByTimeRange(0, timeBoundaries.thirtyDaysAgo),
+    history: filterThreadsByTimeRange(0, timeBoundaries.thirtyDaysAgo),
   };
 
   return groups;

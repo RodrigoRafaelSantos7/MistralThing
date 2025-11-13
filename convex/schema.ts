@@ -38,16 +38,16 @@ export default defineSchema({
     }),
   }).index("by_modelId", ["modelId"]),
   thread: defineTable({
-    title: v.optional(v.string()),
-    status: v.union(
-      v.literal("ready"),
-      v.literal("streaming"),
-      v.literal("submitted")
-    ),
-    streamId: v.optional(v.string()),
-    updatedAt: v.number(),
     userId: v.string(),
-  })
-    .index("by_userId", ["userId"])
-    .index("by_streamId", ["streamId"]),
+    title: v.optional(v.string()),
+    updatedAt: v.number(),
+  }).index("by_userId", ["userId"]),
+  messages: defineTable({
+    threadId: v.id("thread"),
+    role: v.union(v.literal("user"), v.literal("assistant")),
+    content: v.string(),
+    streamId: v.optional(v.string()),
+    isStreaming: v.optional(v.boolean()),
+    streamingComplete: v.optional(v.boolean()),
+  }).index("by_thread", ["threadId"]),
 });
