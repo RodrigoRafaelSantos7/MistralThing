@@ -314,11 +314,10 @@ function ThreadItem({
             }}
           >
             <span className="flex-1 truncate">{thread.title}</span>
-            {/* TODO: Add loading state */}
-            {/**{(chat.status === "streaming" ||
-              chat.status === "submitted") && (
+            {(thread.status === "streaming" ||
+              thread.status === "submitted") && (
               <Loader2Icon className="size-4 animate-spin text-muted-foreground" />
-            )}*/}
+            )}
           </Link>
           <div className="pointer-events-none absolute top-0 right-0 bottom-0 flex w-full items-center justify-end gap-2 rounded-r-md bg-linear-to-l from-sidebar to-transparent px-4 opacity-0 transition-all duration-100 group-hover/thread-item:opacity-100" />
           <div className="pointer-events-none absolute top-0 right-0 bottom-0 flex translate-x-full items-center justify-end gap-2 rounded-r-lg px-2 opacity-0 transition-all duration-100 group-hover/thread-item:pointer-events-auto group-hover/thread-item:translate-x-0 group-hover/thread-item:opacity-100">

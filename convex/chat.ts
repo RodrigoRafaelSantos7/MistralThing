@@ -171,6 +171,11 @@ export const streamChat = httpAction(async (ctx, request) => {
     try {
       console.log("Generate chat called with streamId:", streamId);
 
+      await ctx.runMutation(internal.chat.setThreadStatus, {
+        threadId: body.threadId,
+        status: "submitted",
+      });
+
       const userSettings = await ctx.runQuery(internal.chat.getUserSettings, {
         userId: body.userId,
       });
@@ -205,7 +210,11 @@ export const streamChat = httpAction(async (ctx, request) => {
         // @TODO - HANDLE THIS, Figure out what to do here
       }
 
-      // Simple echo response for testing
+      await ctx.runMutation(internal.chat.setThreadStatus, {
+        threadId: body.threadId,
+        status: "streaming",
+      });
+
       const userContent = latestUserMessage.content;
       const response = await mistralClient.chat.stream({
         model: userSettings.modelId,
@@ -228,6 +237,11 @@ export const streamChat = httpAction(async (ctx, request) => {
         finalContent: response,
       });
 
+      await ctx.runMutation(internal.chat.setThreadStatus, {
+        threadId: body.threadId,
+        status: "ready",
+      });
+
       console.log("Stream completed successfully");
     } catch (error) {
       console.error("Chat generation error:", error);
@@ -244,6 +258,11 @@ export const streamChat = httpAction(async (ctx, request) => {
           await ctx.runMutation(internal.chat.markStreamComplete, {
             messageId: message._id,
             finalContent: errorMessage,
+          });
+
+          await ctx.runMutation(internal.chat.setThreadStatus, {
+            threadId: body.threadId,
+            status: "ready",
           });
         }
       } catch (e) {
@@ -306,4 +325,26 @@ export const getUserSettings = internalQuery({
       .query("settings")
       .withIndex("by_userId", (q) => q.eq("userId", args.userId))
       .unique(),
+});
+
+/**
+ * Sets the status of a thread.
+ *
+ * @param threadId - The id of the thread
+ * @param status - The status of the thread
+ * @returns The thread
+ */
+export const setThreadStatus = internalMutation({
+  args: {
+    threadId: v.id("thread"),
+    status: v.union(
+      v.literal("ready"),
+      v.literal("streaming"),
+      v.literal("submitted")
+    ),
+  },
+  handler: async (ctx, args) =>
+    await ctx.db.patch(args.threadId, {
+      status: args.status,
+    }),
 });
