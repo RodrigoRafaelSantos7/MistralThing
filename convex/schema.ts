@@ -1,4 +1,3 @@
-import { StreamIdValidator } from "@convex-dev/persistent-text-streaming";
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
@@ -38,25 +37,17 @@ export default defineSchema({
       classification: v.optional(v.boolean()),
     }),
   }).index("by_modelId", ["modelId"]),
-  chat: defineTable({
+  thread: defineTable({
+    title: v.optional(v.string()),
+    status: v.union(
+      v.literal("ready"),
+      v.literal("streaming"),
+      v.literal("submitted")
+    ),
+    streamId: v.optional(v.string()),
     updatedAt: v.number(),
-    model: v.string(),
-    title: v.string(),
     userId: v.string(),
-    streamId: StreamIdValidator,
   })
     .index("by_userId", ["userId"])
-    .index("by_userId_updatedAt", ["userId", "updatedAt"]),
-  message: defineTable({
-    chatId: v.id("chat"),
-    modelId: v.string(),
-    userId: v.optional(v.string()),
-    content: v.optional(v.string()),
-    role: v.union(
-      v.literal("system"),
-      v.literal("user"),
-      v.literal("assistant"),
-      v.literal("tool")
-    ),
-  }).index("by_chatId", ["chatId"]),
+    .index("by_streamId", ["streamId"]),
 });
