@@ -16,6 +16,7 @@
     "@convex-dev/resend": "^0.1.13",
     "@radix-ui/react-separator": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",
+    "@react-email/components": "^1.0.1",
     "@t3-oss/env-nextjs": "^0.13.8",
     "@tailwindcss/typography": "^0.5.19",
     "@tanstack/react-form": "^1.25.0",

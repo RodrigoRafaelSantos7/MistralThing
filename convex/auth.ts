@@ -1,8 +1,11 @@
 import { createClient, type GenericCtx } from "@convex-dev/better-auth";
 import { convex } from "@convex-dev/better-auth/plugins";
+import { requireActionCtx } from "@convex-dev/better-auth/utils";
 import { betterAuth } from "better-auth";
+import { magicLink } from "better-auth/plugins";
 import { components } from "./_generated/api";
 import type { DataModel } from "./_generated/dataModel";
+import { sendMagicLink } from "./email";
 
 const siteUrl = process.env.SITE_URL as string;
 
@@ -39,5 +42,15 @@ export const createAuth = (
         prompt: "select_account consent",
       },
     },
-    plugins: [convex()],
+    plugins: [
+      convex(),
+      magicLink({
+        sendMagicLink: async ({ email, url }) => {
+          await sendMagicLink(requireActionCtx(ctx), {
+            to: email,
+            url,
+          });
+        },
+      }),
+    ],
   });

@@ -1,9 +1,9 @@
 "use client";
 
 import { useForm } from "@tanstack/react-form";
-import { ArrowRightIcon, GithubIcon, Loader2 } from "lucide-react";
+import { ArrowRightIcon, GithubIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useTransition } from "react";
 import { toast } from "sonner";
 import z from "zod";
 import { DynamicImage } from "@/components/dynamic-image";
@@ -11,7 +11,6 @@ import GoogleIcon from "@/components/icons/google";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/auth/auth-client";
 import { indexPath, magicLinkPath } from "@/lib/paths";
 
@@ -20,9 +19,7 @@ const schema = z.object({
 });
 
 const LoginPage = () => {
-  const [googlePending, setGooglePending] = useState(false);
-  const [githubPending, setGithubPending] = useState(false);
-  const [emailPending, setEmailPending] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const router = useRouter();
 
@@ -31,29 +28,23 @@ const LoginPage = () => {
       email: "",
     },
     onSubmit: async ({ value }) => {
-      setEmailPending(true);
       await authClient.signIn
         .magicLink({
           email: value.email,
           callbackURL: indexPath(),
-          fetchOptions: {
-            onSuccess: () => {
-              router.push(magicLinkPath());
-            },
-            onError: (error) => {
-              console.error(error);
-              toast.error("Failed to send the magic link. Please try again!");
-              setEmailPending(false);
-            },
-          },
+        })
+        .then(async (result) => {
+          const toastId = toast.loading("Sending magic link...");
+          if (result?.error != null) {
+            toast.error(result.error.message, { id: toastId });
+          } else {
+            toast.dismiss(toastId);
+            router.push(magicLinkPath());
+          }
         })
         .catch((error) => {
           console.error(error);
-          toast.error("Failed to sign in with email");
-          setEmailPending(false);
-        })
-        .finally(() => {
-          setEmailPending(false);
+          toast.error("Failed to send the magic link. Please try again!");
         });
     },
     validators: {
@@ -63,39 +54,6 @@ const LoginPage = () => {
     },
   });
 
-  async function signInWithGoogle() {
-    setGooglePending(true);
-    await authClient.signIn
-      .social({
-        provider: "google",
-        callbackURL: indexPath(),
-      })
-      .catch((error) => {
-        console.error(error);
-        setGooglePending(false);
-        toast.error("Failed to sign in with Google");
-      })
-      .finally(() => {
-        setGooglePending(false);
-      });
-  }
-
-  async function signInWithGitHub() {
-    setGithubPending(true);
-    await authClient.signIn
-      .social({
-        provider: "github",
-        callbackURL: indexPath(),
-      })
-      .catch((error) => {
-        console.error(error);
-        setGithubPending(false);
-        toast.error("Failed to sign in with GitHub");
-      })
-      .finally(() => {
-        setGithubPending(false);
-      });
-  }
   return (
     <form
       className="relative flex h-full w-full flex-1 items-center justify-center p-4"
@@ -144,27 +102,11 @@ const LoginPage = () => {
             {({ isSubmitting, canSubmit }) => (
               <Button
                 className="w-full"
-                disabled={
-                  !canSubmit ||
-                  isSubmitting ||
-                  emailPending ||
-                  githubPending ||
-                  googlePending
-                }
+                disabled={!canSubmit || isSubmitting || isPending}
                 type="submit"
               >
                 <span className="text-primary-foreground">Continue</span>
-                {isSubmitting ? (
-                  <Loader2
-                    className="animate-spin text-primary-foreground"
-                    size={10}
-                  />
-                ) : (
-                  <ArrowRightIcon
-                    className="text-primary-foreground"
-                    size={10}
-                  />
-                )}
+                <ArrowRightIcon className="text-primary-foreground" size={10} />
               </Button>
             )}
           </form.Subscribe>
@@ -176,32 +118,54 @@ const LoginPage = () => {
         </div>
         <div className="flex w-full flex-col gap-2">
           <Button
-            disabled={googlePending || emailPending || githubPending}
-            onClick={signInWithGoogle}
+            disabled={isPending}
+            onClick={() =>
+              startTransition(async () => {
+                const toastId = toast.loading("Signing in with Google...");
+                await authClient.signIn
+                  .social({
+                    provider: "google",
+                    callbackURL: indexPath(),
+                  })
+                  .then(async (result) => {
+                    if (result?.error != null) {
+                      toast.error(result.error.message, { id: toastId });
+                    } else {
+                      toast.dismiss(toastId);
+                      router.push(indexPath());
+                    }
+                  });
+              })
+            }
             variant="outline"
           >
-            {googlePending ? (
-              <Spinner />
-            ) : (
-              <>
-                <GoogleIcon className="size-4" />
-                <span className="text-sm">Continue with Google</span>
-              </>
-            )}
+            <GoogleIcon className="size-4" />
+            <span className="text-sm">Continue with Google</span>
           </Button>
           <Button
-            disabled={githubPending || emailPending || googlePending}
-            onClick={signInWithGitHub}
+            disabled={isPending}
+            onClick={() =>
+              startTransition(async () => {
+                const toastId = toast.loading("Signing in with GitHub...");
+                await authClient.signIn
+                  .social({
+                    provider: "github",
+                    callbackURL: indexPath(),
+                  })
+                  .then(async (result) => {
+                    if (result?.error != null) {
+                      toast.error(result.error.message, { id: toastId });
+                    } else {
+                      toast.dismiss(toastId);
+                      router.push(indexPath());
+                    }
+                  });
+              })
+            }
             variant="outline"
           >
-            {githubPending ? (
-              <Spinner />
-            ) : (
-              <>
-                <GithubIcon className="text-foreground" size={16} />
-                <span className="text-sm">Continue with GitHub</span>
-              </>
-            )}
+            <GithubIcon className="text-foreground" size={16} />
+            <span className="text-sm">Continue with GitHub</span>
           </Button>
         </div>
       </div>
