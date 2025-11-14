@@ -1,6 +1,7 @@
 "use client";
 
 import { toast } from "sonner";
+import ModelIconComponent from "@/components/model-icon";
 import { Section } from "@/components/ui/section";
 import { Switch } from "@/components/ui/switch";
 import { useModels } from "@/lib/models-store/provider";
@@ -55,6 +56,10 @@ const Page = () => {
               key={model.modelId}
             >
               <div className="flex flex-1 gap-4 border-b p-4">
+                <ModelIconComponent
+                  className="size-12 fill-primary"
+                  modelId={model.modelId}
+                />
                 <div className="flex flex-1 gap-1">
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center gap-2">
