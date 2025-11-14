@@ -12,6 +12,7 @@ import { useMessages } from "@/lib/threads-store/messages/provider";
 import type { Message } from "@/lib/threads-store/messages/utils";
 import { useThreadSession } from "@/lib/threads-store/session/provider";
 import { useThreads } from "@/lib/threads-store/threads/provider";
+import { UserMessage } from "./user-message";
 
 function StreamingMessageContent({ message }: { message: Message }) {
   // Convex site URL for HTTP actions - convert .cloud to .site
@@ -111,7 +112,10 @@ export function MessageList() {
             message.isStreaming ? (
               <StreamingMessage key={message._id} message={message} />
             ) : (
-              <div key={message._id}>{message.content}</div>
+              <UserMessage
+                id={message._id as string}
+                key={message._id as string}
+              />
             )
           )}
         </div>
