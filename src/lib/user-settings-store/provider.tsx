@@ -4,7 +4,6 @@ import { type Preloaded, useMutation, usePreloadedQuery } from "convex/react";
 import { createContext, useContext } from "react";
 import { api } from "@/convex/_generated/api";
 import type { UserSettings } from "./utils";
-import { defaultSettings } from "./utils";
 
 type UserSettingsContextType = {
   /**
@@ -42,10 +41,7 @@ export function UserSettingsProvider({
   /**
    * The settings query result from the convex database that was preloaded on the server
    */
-  const settingsQueryResult = usePreloadedQuery(initialSettings);
-
-  // This is for fallback if the settings are not found in the database
-  const settings = settingsQueryResult ?? defaultSettings;
+  const settings = usePreloadedQuery(initialSettings);
 
   /**
    * Update the settings for the current user with optimistic updates
