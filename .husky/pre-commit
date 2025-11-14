@@ -21,7 +21,7 @@ git stash push --quiet --keep-index --message "pre-commit-stash" || true
 STASHED=$?
 
 # Run formatter on the staged files
-bun run check:fix
+bun run check
 FORMAT_EXIT_CODE=$?
 
 # Restore working directory state
