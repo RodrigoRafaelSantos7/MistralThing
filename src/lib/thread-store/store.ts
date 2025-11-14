@@ -27,7 +27,6 @@ export type ThreadStoreImpl<UI_MESSAGE extends UIMessage> = {
   ) => void;
   attachments: FileAttachment[];
   setAttachments: (attachments: FileAttachment[]) => void;
-
   setMessages: (
     messages: UI_MESSAGE[] | ((prev: UI_MESSAGE[]) => UI_MESSAGE[])
   ) => void;
