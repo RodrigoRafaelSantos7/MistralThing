@@ -28,7 +28,8 @@ export const get = query({
     if (!settings) {
       throw new ConvexError({
         code: 404,
-        message: "Settings not found.",
+        message:
+          "Settings not found. (There should always be settings for a user.)",
         severity: "high",
       });
     }

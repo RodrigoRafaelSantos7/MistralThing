@@ -3,7 +3,7 @@ import { v } from "convex/values";
 
 export default defineSchema({
   settings: defineTable({
-    userId: v.id("user"),
+    userId: v.string(),
     theme: v.union(
       v.literal("default"),
       v.literal("t3-chat"),
