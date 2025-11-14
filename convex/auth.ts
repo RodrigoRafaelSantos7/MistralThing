@@ -16,7 +16,28 @@ export const createAuth = (
     logger: {
       disabled: optionsOnly,
     },
+    trustedOrigins: [
+      "https://mistral-thing.xyz",
+      "https://www.mistral-thing.xyz",
+      "http://localhost:3000",
+    ],
+    session: {
+      expiresIn: 60 * 60 * 24 * 365,
+      updateAge: 60 * 60 * 24,
+    },
     baseURL: siteUrl,
     database: authComponent.adapter(ctx),
+    socialProviders: {
+      github: {
+        clientId: process.env.GITHUB_CLIENT_ID as string,
+        clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+      },
+      google: {
+        clientId: process.env.GOOGLE_CLIENT_ID as string,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+        accessType: "offline",
+        prompt: "select_account consent",
+      },
+    },
     plugins: [convex()],
   });
