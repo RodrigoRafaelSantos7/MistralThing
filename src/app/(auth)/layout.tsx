@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "Get access to AI models from Mistral. Unlimited tier is free for everyone!",
 };
 
-const Layout = async ({ children }: { children: React.ReactNode }) => {
+const AuthLayout = async ({ children }: { children: React.ReactNode }) => {
   const token = await getToken();
 
   if (token) {
@@ -26,4 +26,4 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export default Layout;
+export default AuthLayout;

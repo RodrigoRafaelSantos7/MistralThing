@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth/auth-client";
-import { loginPath } from "@/lib/paths";
+import { accountPath, loginPath } from "@/lib/paths";
 
 const Page = () => {
   const router = useRouter();
@@ -17,6 +18,7 @@ const Page = () => {
       >
         Logout
       </Button>
+      <Link href={accountPath()}>Account</Link>
     </div>
   );
 };
