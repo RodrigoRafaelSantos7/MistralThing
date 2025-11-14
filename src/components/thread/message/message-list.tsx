@@ -32,7 +32,7 @@ function StreamingMessageContent({ message }: { message: Message }) {
   const isActive = status === "streaming" || message.isStreaming;
 
   return (
-    <div className="whitespace-pre-wrap break-words">
+    <div className="wrap-break-word whitespace-pre-wrap">
       {displayText}
       {isActive && (
         <span className="ml-1 inline-block h-5 w-2 animate-pulse bg-current opacity-75" />
@@ -52,7 +52,7 @@ function StreamingMessage({ message }: { message: Message }) {
   // If streamId is invalid, don't try to stream - just display the message content
   if (!hasValidStreamId) {
     return (
-      <div className="whitespace-pre-wrap break-words">
+      <div className="wrap-break-word whitespace-pre-wrap">
         {message.content}
         {message.isStreaming && (
           <span className="ml-1 inline-block h-5 w-2 animate-pulse bg-current opacity-75" />

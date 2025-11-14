@@ -24,7 +24,7 @@ import { threadPath } from "@/paths";
 
 const ChatInput = () => {
   const [input, setInput] = useState("");
-  const { threads, createThread } = useThreads();
+  const { threads, createThreadAndSendMessage } = useThreads();
   const { threadId } = useThreadSession();
   const thread = threads.find((threadItem) => threadItem._id === threadId);
   const status = thread?.status ?? "ready";
@@ -41,7 +41,6 @@ const ChatInput = () => {
 
       if (currentMessages !== undefined && currentMessages !== null) {
         const tempUserMessageId = `temp-user-${now}` as Id<"messages">;
-        const tempAiMessageId = `temp-ai-${now}` as Id<"messages">;
 
         const userMessage: Message = {
           _id: tempUserMessageId,
@@ -51,18 +50,7 @@ const ChatInput = () => {
           content: args.content,
         };
 
-        const aiMessage: Message = {
-          _id: tempAiMessageId,
-          _creationTime: now + 1,
-          threadId: args.threadId,
-          role: "assistant",
-          content: "",
-          streamId: `temp-stream-${now}`,
-          isStreaming: true,
-          streamingComplete: false,
-        };
-
-        const updatedMessages = [aiMessage, userMessage, ...currentMessages];
+        const updatedMessages = [userMessage, ...currentMessages];
         localStore.setQuery(
           api.messages.getMessagesForThread,
           { threadId: args.threadId },
@@ -71,6 +59,7 @@ const ChatInput = () => {
       }
     }
   );
+
   const router = useRouter();
 
   const handleSubmit = async () => {
@@ -84,16 +73,18 @@ const ChatInput = () => {
         content: input,
       });
     } else {
-      const newThreadId = await createThread();
+      // Generate temp thread ID for optimistic updates
+      const tempThreadId = `temp-thread-${Date.now()}` as Id<"thread">;
 
-      if (newThreadId) {
-        router.push(threadPath(newThreadId));
-      }
-
-      await sendMessage({
-        threadId: newThreadId,
+      // Call atomic mutation with optimistic updates
+      // The optimistic updates will make the UI feel instant
+      const result = await createThreadAndSendMessage({
         content: input,
+        tempThreadId,
       });
+
+      // Navigate to the real thread ID once we have it
+      router.push(threadPath(result));
     }
 
     // Reset form state

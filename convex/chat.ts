@@ -12,6 +12,7 @@ import { authComponent } from "@/convex/auth";
 import { components, internal } from "./_generated/api";
 import {
   httpAction,
+  internalAction,
   internalMutation,
   internalQuery,
   mutation,
@@ -40,6 +41,78 @@ export const getMessagesInternal = internalQuery({
       .query("messages")
       .withIndex("by_thread", (q) => q.eq("threadId", args.threadId))
       .collect(),
+});
+
+/**
+ * Creates a new thread and sends the first message atomically.
+ *
+ * @param content - The content of the first message
+ * @returns The thread ID and message IDs
+ */
+export const createThreadAndSendMessage = mutation({
+  args: {
+    content: v.string(),
+  },
+  returns: v.object({
+    threadId: v.id("thread"),
+    userMessageId: v.id("messages"),
+    aiMessageId: v.id("messages"),
+    streamingMessageId: v.id("messages"),
+    streamId: v.string(),
+  }),
+  handler: async (ctx, args) => {
+    const user = await authComponent.getAuthUser(ctx).catch(() => null);
+
+    if (!user) {
+      throw new ConvexError({
+        code: 401,
+        message: "User not found. Please login to continue.",
+        severity: "high",
+      });
+    }
+
+    // Create thread with streaming status (title will be generated asynchronously)
+    const threadId = await ctx.db.insert("thread", {
+      userId: user._id,
+      title: "Processing...", // Will be set by generateTitle action
+      status: "streaming",
+      updatedAt: Date.now(),
+    });
+
+    // Schedule title generation (runs asynchronously)
+    await ctx.scheduler.runAfter(0, internal.chat.generateTitle, {
+      threadId,
+      content: args.content,
+    });
+
+    // Insert user message
+    const userMessageId = await ctx.db.insert("messages", {
+      threadId,
+      role: "user",
+      content: args.content,
+    });
+
+    // Create a stream for the AI response
+    const streamId = await persistentTextStreaming.createStream(ctx);
+
+    // Create the AI message with streaming enabled
+    const aiMessageId = await ctx.db.insert("messages", {
+      threadId,
+      role: "assistant",
+      content: "", // Start with empty content
+      streamId,
+      isStreaming: true,
+      streamingComplete: false,
+    });
+
+    return {
+      threadId,
+      userMessageId,
+      aiMessageId,
+      streamingMessageId: aiMessageId,
+      streamId,
+    };
+  },
 });
 
 /**
@@ -167,7 +240,7 @@ export const streamChat = httpAction(async (ctx, request) => {
     _request: any,
     streamId: StreamId,
     chunkAppender: any
-    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: <explanation>
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex streaming logic requires multiple steps
   ) => {
     try {
       console.log("Generate chat called with streamId:", streamId);
@@ -382,4 +455,69 @@ export const setThreadStatus = internalMutation({
     await ctx.db.patch(args.threadId, {
       status: args.status,
     }),
+});
+
+/**
+ * Generates a title for a thread based on the initial message content.
+ * Updates the thread with the generated title.
+ */
+export const generateTitle = internalAction({
+  args: {
+    threadId: v.id("thread"),
+    content: v.string(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const title = await mistralClient.chat.stream({
+      model: "mistral-tiny-latest",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a helpful assistant that generates a title for a thread based on the initial user message. Make it short and to the point.",
+        },
+        { role: "user", content: args.content },
+      ],
+    });
+
+    let finalTitle = "";
+    for await (const chunk of title) {
+      const content = chunk.data.choices[0].delta.content;
+      if (content) {
+        finalTitle += content;
+      }
+    }
+
+    // Remove quotes from the title (both single and double quotes)
+    let cleanedTitle = finalTitle.trim();
+    // Remove leading/trailing quotes (both single and double)
+    cleanedTitle = cleanedTitle.replace(/^["']+|["']+$/g, "");
+    cleanedTitle = cleanedTitle.trim();
+
+    // Update the thread with the generated title
+    await ctx.runMutation(internal.chat.updateThreadTitle, {
+      threadId: args.threadId,
+      title: cleanedTitle,
+    });
+
+    return null;
+  },
+});
+
+/**
+ * Updates the title of a thread (internal mutation).
+ */
+export const updateThreadTitle = internalMutation({
+  args: {
+    threadId: v.id("thread"),
+    title: v.string(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.threadId, {
+      title: args.title,
+      updatedAt: Date.now(),
+    });
+    return null;
+  },
 });

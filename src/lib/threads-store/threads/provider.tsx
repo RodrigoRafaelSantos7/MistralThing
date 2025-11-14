@@ -4,11 +4,16 @@ import { type Preloaded, useMutation, usePreloadedQuery } from "convex/react";
 import { createContext, useContext } from "react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import type { Message } from "@/lib/threads-store/messages/utils";
 import type { Thread } from "@/lib/threads-store/threads/utils";
 
 type ThreadsContextType = {
   threads: Thread[];
   createThread: () => Promise<Id<"thread">>;
+  createThreadAndSendMessage: (args: {
+    content: string;
+    tempThreadId?: Id<"thread">;
+  }) => Promise<Id<"thread">>;
   updateThread: (args: {
     id: Id<"thread">;
     title?: string;
@@ -50,6 +55,67 @@ export function ThreadsProvider({
       }
     }
   );
+
+  const baseCreateThreadAndSendMessage = useMutation(
+    api.chat.createThreadAndSendMessage
+  );
+
+  const createThreadAndSendMessage = async (args: {
+    content: string;
+    tempThreadId?: Id<"thread">;
+  }): Promise<Id<"thread">> => {
+    const tempThreadId =
+      args.tempThreadId ?? (`temp-thread-${Date.now()}` as Id<"thread">);
+
+    const mutationWithOptimisticUpdate =
+      baseCreateThreadAndSendMessage.withOptimisticUpdate(
+        (localStore, mutationArgs) => {
+          const now = Date.now();
+
+          // Update threads query
+          const currentThreads = localStore.getQuery(
+            api.threads.getThreadsForUser,
+            {}
+          );
+          if (currentThreads !== undefined && currentThreads !== null) {
+            const tempThread: Thread = {
+              _id: tempThreadId,
+              _creationTime: now,
+              userId: "",
+              title: "Processing...",
+              status: "streaming",
+              updatedAt: now,
+            };
+            const updatedThreads = [tempThread, ...currentThreads];
+            localStore.setQuery(
+              api.threads.getThreadsForUser,
+              {},
+              updatedThreads
+            );
+          }
+
+          // Update messages query
+          const tempUserMessageId = `temp-user-${now}` as Id<"messages">;
+          const userMessage: Message = {
+            _id: tempUserMessageId,
+            _creationTime: now,
+            threadId: tempThreadId,
+            role: "user",
+            content: mutationArgs.content,
+          };
+          localStore.setQuery(
+            api.messages.getMessagesForThread,
+            { threadId: tempThreadId },
+            [userMessage]
+          );
+        }
+      );
+
+    const result = await mutationWithOptimisticUpdate({
+      content: args.content,
+    });
+    return result.threadId;
+  };
 
   const updateThread = useMutation(api.threads.update).withOptimisticUpdate(
     (localStore, args) => {
@@ -95,6 +161,7 @@ export function ThreadsProvider({
       value={{
         threads,
         createThread,
+        createThreadAndSendMessage,
         updateThread,
         removeThread,
         getThreadById,
