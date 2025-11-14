@@ -144,7 +144,7 @@ function AppSidebarKeyboardShortcuts() {
 
         const nextThread = threads[nextIndex];
         if (nextThread) {
-          router.push(threadPath(nextThread._id));
+          router.push(threadPath(nextThread.slug));
         }
       }
     },
@@ -303,12 +303,12 @@ function ThreadItem({
               currentThreadId === thread._id &&
                 "data-thread-active='true' bg-muted"
             )}
-            href={threadPath(thread._id)}
+            href={threadPath(thread.slug)}
             onMouseDown={(e) => {
               e.preventDefault();
               e.stopPropagation();
               if (e.button === 0) {
-                router.push(threadPath(thread._id));
+                router.push(threadPath(thread.slug));
               }
             }}
           >

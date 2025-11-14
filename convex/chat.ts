@@ -47,14 +47,17 @@ export const getMessagesInternal = internalQuery({
  * Creates a new thread and sends the first message atomically.
  *
  * @param content - The content of the first message
- * @returns The thread ID and message IDs
+ * @param slug - The slug for the thread
+ * @returns The thread ID, slug, and message IDs
  */
 export const createThreadAndSendMessage = mutation({
   args: {
     content: v.string(),
+    slug: v.string(),
   },
   returns: v.object({
     threadId: v.id("thread"),
+    slug: v.string(),
     userMessageId: v.id("messages"),
     aiMessageId: v.id("messages"),
     streamingMessageId: v.id("messages"),
@@ -74,6 +77,7 @@ export const createThreadAndSendMessage = mutation({
     // Create thread with streaming status (title will be generated asynchronously)
     const threadId = await ctx.db.insert("thread", {
       userId: user._id,
+      slug: args.slug,
       title: "Processing...", // Will be set by generateTitle action
       status: "streaming",
       updatedAt: Date.now(),
@@ -107,6 +111,7 @@ export const createThreadAndSendMessage = mutation({
 
     return {
       threadId,
+      slug: args.slug,
       userMessageId,
       aiMessageId,
       streamingMessageId: aiMessageId,

@@ -1,7 +1,9 @@
 "use client";
 
+import { useQuery } from "convex/react";
 import { usePathname } from "next/navigation";
 import { createContext, useContext, useMemo } from "react";
+import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 
 const ThreadSessionContext = createContext<{ threadId: Id<"thread"> | null }>({
@@ -21,12 +23,20 @@ export function ThreadSessionProvider({
 }) {
   const pathname = usePathname();
 
-  const threadId = useMemo(() => {
+  const slug = useMemo(() => {
     if (pathname?.startsWith("/t/")) {
-      return pathname.split("/t/")[1] as Id<"thread">;
+      return pathname.split("/t/")[1];
     }
     return null;
   }, [pathname]);
+
+  // Look up thread by slug to get the threadId
+  const thread = useQuery(
+    api.threads.getThreadBySlug,
+    slug ? { slug } : "skip"
+  );
+
+  const threadId = useMemo(() => thread?._id ?? null, [thread]);
 
   return (
     <ThreadSessionContext.Provider value={{ threadId }}>

@@ -9,11 +9,12 @@ import type { Thread } from "@/lib/threads-store/threads/utils";
 
 type ThreadsContextType = {
   threads: Thread[];
-  createThread: () => Promise<Id<"thread">>;
+  createThread: (args: { slug: string }) => Promise<Id<"thread">>;
   createThreadAndSendMessage: (args: {
     content: string;
+    slug: string;
     tempThreadId?: Id<"thread">;
-  }) => Promise<Id<"thread">>;
+  }) => Promise<string>;
   updateThread: (args: {
     id: Id<"thread">;
     title?: string;
@@ -36,7 +37,7 @@ export function ThreadsProvider({
   const threads = threadsQueryResult ?? [];
 
   const createThread = useMutation(api.threads.create).withOptimisticUpdate(
-    (localStore) => {
+    (localStore, args) => {
       const currentThreads = localStore.getQuery(
         api.threads.getThreadsForUser,
         {}
@@ -47,6 +48,7 @@ export function ThreadsProvider({
           _id: `temp-${now}` as Id<"thread">,
           _creationTime: now,
           userId: "",
+          slug: args.slug,
           status: "streaming",
           updatedAt: now,
         };
@@ -62,8 +64,10 @@ export function ThreadsProvider({
 
   const createThreadAndSendMessage = async (args: {
     content: string;
+    slug: string;
     tempThreadId?: Id<"thread">;
-  }): Promise<Id<"thread">> => {
+  }): Promise<string> => {
+    const slug = args.slug;
     const tempThreadId =
       args.tempThreadId ?? (`temp-thread-${Date.now()}` as Id<"thread">);
 
@@ -72,20 +76,22 @@ export function ThreadsProvider({
         (localStore, mutationArgs) => {
           const now = Date.now();
 
-          // Update threads query
+          const tempThread: Thread = {
+            _id: tempThreadId,
+            _creationTime: now,
+            userId: "",
+            slug: mutationArgs.slug,
+            title: "Processing...",
+            status: "streaming",
+            updatedAt: now,
+          };
+
+          // Update threads query (for sidebar)
           const currentThreads = localStore.getQuery(
             api.threads.getThreadsForUser,
             {}
           );
           if (currentThreads !== undefined && currentThreads !== null) {
-            const tempThread: Thread = {
-              _id: tempThreadId,
-              _creationTime: now,
-              userId: "",
-              title: "Processing...",
-              status: "streaming",
-              updatedAt: now,
-            };
             const updatedThreads = [tempThread, ...currentThreads];
             localStore.setQuery(
               api.threads.getThreadsForUser,
@@ -93,6 +99,13 @@ export function ThreadsProvider({
               updatedThreads
             );
           }
+
+          // Update getThreadBySlug query (for ThreadSessionProvider - instant routing)
+          localStore.setQuery(
+            api.threads.getThreadBySlug,
+            { slug: mutationArgs.slug },
+            tempThread
+          );
 
           // Update messages query
           const tempUserMessageId = `temp-user-${now}` as Id<"messages">;
@@ -113,8 +126,9 @@ export function ThreadsProvider({
 
     const result = await mutationWithOptimisticUpdate({
       content: args.content,
+      slug,
     });
-    return result.threadId;
+    return result.slug;
   };
 
   const updateThread = useMutation(api.threads.update).withOptimisticUpdate(

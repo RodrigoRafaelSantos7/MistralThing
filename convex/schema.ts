@@ -39,6 +39,7 @@ export default defineSchema({
   }).index("by_modelId", ["modelId"]),
   thread: defineTable({
     userId: v.string(),
+    slug: v.string(),
     title: v.optional(v.string()),
     status: v.union(
       v.literal("ready"),
@@ -46,7 +47,9 @@ export default defineSchema({
       v.literal("submitted")
     ),
     updatedAt: v.number(),
-  }).index("by_userId", ["userId"]),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_slug", ["slug"]),
   messages: defineTable({
     threadId: v.id("thread"),
     role: v.union(v.literal("user"), v.literal("assistant")),

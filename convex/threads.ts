@@ -32,8 +32,10 @@ export const getThreadsForUser = query({
  * @throws {ConvexError} 401 if user not found/not authenticated
  */
 export const create = mutation({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    slug: v.string(),
+  },
+  handler: async (ctx, args) => {
     const user = await authComponent.getAuthUser(ctx).catch(() => null);
 
     if (!user) {
@@ -46,6 +48,7 @@ export const create = mutation({
 
     return await ctx.db.insert("thread", {
       userId: user._id,
+      slug: args.slug,
       status: "streaming",
       updatedAt: Date.now(),
     });
@@ -104,6 +107,49 @@ export const update = mutation({
       status: args.status,
       updatedAt: Date.now(),
     });
+  },
+});
+
+/**
+ * Retrieves a thread by its slug.
+ *
+ * @param slug - The slug of the thread
+ * @returns The thread or null if not found
+ * @throws {ConvexError} 401 if user not found/not authenticated
+ */
+export const getThreadBySlug = query({
+  args: {
+    slug: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await authComponent.getAuthUser(ctx).catch(() => null);
+
+    if (!user) {
+      throw new ConvexError({
+        code: 401,
+        message: "User not found. Please login to continue.",
+        severity: "high",
+      });
+    }
+
+    const thread = await ctx.db
+      .query("thread")
+      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .first();
+
+    if (!thread) {
+      return null;
+    }
+
+    if (thread.userId !== user._id) {
+      throw new ConvexError({
+        code: 403,
+        message: "You are not authorized to access this thread.",
+        severity: "high",
+      });
+    }
+
+    return thread;
   },
 });
 

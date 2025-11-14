@@ -14,4 +14,4 @@ export const accountModelsPath = () => "/account/models";
 export const accountAppearancePath = () => "/account/appearance";
 
 // (Protected)/(thread)
-export const threadPath = (threadId: string) => `/t/${threadId}`;
+export const threadPath = (slug: string) => `/t/${slug}`;

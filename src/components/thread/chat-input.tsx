@@ -3,8 +3,9 @@
 import { useMutation } from "convex/react";
 import { motion } from "framer-motion";
 import { ArrowUpIcon, SquareIcon } from "lucide-react";
+import { nanoid } from "nanoid";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { match, P } from "ts-pattern";
 import { ScrollToBottomButton } from "@/components/thread/scroll-to-bottom-button";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ import { threadPath } from "@/paths";
 
 const ChatInput = () => {
   const [input, setInput] = useState("");
+  const [, startTransition] = useTransition();
   const { threads, createThreadAndSendMessage } = useThreads();
   const { threadId } = useThreadSession();
   const thread = threads.find((threadItem) => threadItem._id === threadId);
@@ -73,18 +75,22 @@ const ChatInput = () => {
         content: input,
       });
     } else {
-      // Generate temp thread ID for optimistic updates
-      const tempThreadId = `temp-thread-${Date.now()}` as Id<"thread">;
+      // Generate slug immediately for instant navigation
+      const slug = nanoid();
 
-      // Call atomic mutation with optimistic updates
-      // The optimistic updates will make the UI feel instant
-      const result = await createThreadAndSendMessage({
+      // Start mutation first to trigger optimistic updates immediately
+      createThreadAndSendMessage({
         content: input,
-        tempThreadId,
+        slug,
+      }).catch((error) => {
+        console.error("Failed to create thread:", error);
+        // Optionally handle error (e.g., show toast notification)
       });
 
-      // Navigate to the real thread ID once we have it
-      router.push(threadPath(result));
+      // Navigate instantly in a transition (non-blocking, low priority)
+      startTransition(() => {
+        router.push(threadPath(slug));
+      });
     }
 
     // Reset form state
