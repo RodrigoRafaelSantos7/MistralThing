@@ -55,8 +55,9 @@ export function SingleFieldForm(props: SingleFieldFormProps) {
         const toastId = toast.loading("Updating...");
         try {
           await props.onSubmit(value.value);
-          form.reset();
           toast.success("Changes saved", { id: toastId });
+          form.reset();
+          form.setFieldValue("value", value.value);
         } catch (error) {
           console.error(error);
           toast.error("Failed to save changes", { id: toastId });

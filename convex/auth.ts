@@ -9,6 +9,7 @@ import { betterAuth } from "better-auth";
 import { magicLink } from "better-auth/plugins";
 import { components, internal } from "./_generated/api";
 import type { DataModel } from "./_generated/dataModel";
+import { query } from "./_generated/server";
 
 const siteUrl = process.env.SITE_URL as string;
 
@@ -95,5 +96,25 @@ export const createAuth = (
       }),
     ],
   });
+
+/**
+ * Lists the current authenticated user's sessions.
+ *
+ * @returns The current user's sessions or an empty array if not authenticated
+ */
+export const listSessions = query({
+  handler: async (ctx) => {
+    try {
+      const { auth, headers } = await authComponent.getAuth(createAuth, ctx);
+      const sessions = await auth.api.listSessions({
+        headers,
+      });
+      return sessions;
+    } catch (error) {
+      console.error("Error listing sessions:", error);
+      return [];
+    }
+  },
+});
 
 export const { onCreate, onUpdate, onDelete } = authComponent.triggersApi();
