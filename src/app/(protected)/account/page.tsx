@@ -23,6 +23,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/convex/_generated/api";
 import { authClient } from "@/lib/auth/auth-client";
+import { useUser } from "@/lib/user-store/provider";
 
 const getDeviceInfo = ({ userAgent }: { userAgent: string }) => {
   const parser = new UAParser(userAgent);
@@ -166,6 +167,7 @@ const SessionItem = ({ sessionItem, currentSessionId }: SessionItemProps) => {
 };
 
 const Page = () => {
+  const { user } = useUser();
   const session = authClient.useSession();
   const allSessions = useQuery(api.auth.listSessions);
   const isAllSessionsPending = allSessions === undefined;
@@ -173,24 +175,20 @@ const Page = () => {
   return (
     <div className="flex w-full flex-col gap-8">
       <Section description="Update your account details" title="Profile">
-        {session.isPending ? (
-          <UsernameFormSkeleton />
-        ) : (
-          <SingleFieldForm
-            defaultValue={session.data?.user.name ?? ""}
-            description="What do you want to be called?"
-            footerMessage="Please use 32 characters or less."
-            label="Username"
-            onSubmit={async (value) => {
-              await authClient.updateUser({
-                name: value,
-              });
-            }}
-            renderInput={({ onChange, value }) => (
-              <Input onChange={(e) => onChange(e.target.value)} value={value} />
-            )}
-          />
-        )}
+        <SingleFieldForm
+          defaultValue={user.name ?? ""}
+          description="What do you want to be called?"
+          footerMessage="Please use 32 characters or less."
+          label="Username"
+          onSubmit={async (value) => {
+            await authClient.updateUser({
+              name: value,
+            });
+          }}
+          renderInput={({ onChange, value }) => (
+            <Input onChange={(e) => onChange(e.target.value)} value={value} />
+          )}
+        />
       </Section>
       <Separator />
       <Section description="Manage your sessions" title="Sessions">
@@ -211,20 +209,6 @@ const Page = () => {
     </div>
   );
 };
-
-const UsernameFormSkeleton = () => (
-  <div className="flex flex-col overflow-hidden rounded-lg border bg-card">
-    <div className="flex flex-col gap-4 p-4">
-      <Skeleton className="h-7 w-20" />
-      <Skeleton className="h-4 w-64" />
-      <Skeleton className="h-9 w-full rounded-md" />
-    </div>
-    <div className="flex items-center justify-between border-t bg-sidebar p-4">
-      <Skeleton className="h-4 w-56" />
-      <Skeleton className="h-8 w-14 rounded-md" />
-    </div>
-  </div>
-);
 
 const SessionsSkeleton = () => (
   <>

@@ -1,6 +1,7 @@
+import { ThemeSelector } from "@/components/theme-selector";
+import { UserMenu } from "@/components/user-menu";
 import { useParamsThreadId } from "@/hooks/use-params-thread-id";
 import { cn } from "@/lib/utils";
-import { ThemeSelector } from "./theme-selector";
 
 export function Header() {
   const threadId = useParamsThreadId();
@@ -15,6 +16,7 @@ export function Header() {
       <div className="flex items-center gap-2 p-3" />
       <div className="flex items-center gap-2 p-3">
         <ThemeSelector />
+        <UserMenu />
       </div>
     </div>
   );
