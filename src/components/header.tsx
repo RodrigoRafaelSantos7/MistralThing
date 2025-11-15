@@ -1,12 +1,12 @@
 "use client";
 
+import { ModelSelector } from "@/components/model-selector";
 import { ThemeSelector } from "@/components/theme-selector";
 import { UserMenu } from "@/components/user-menu";
 import { useParamsThreadId } from "@/hooks/use-params-thread-id";
 import { cn } from "@/lib/utils";
-import { ModelSelector } from "./model-selector";
 
-export function Header() {
+const Header = () => {
   const threadId = useParamsThreadId();
 
   return (
@@ -25,4 +25,6 @@ export function Header() {
       </div>
     </div>
   );
-}
+};
+
+export { Header };
