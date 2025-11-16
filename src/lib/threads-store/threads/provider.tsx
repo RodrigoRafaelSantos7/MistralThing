@@ -2,7 +2,7 @@
 
 import { type Preloaded, useMutation, usePreloadedQuery } from "convex/react";
 import { ConvexError } from "convex/values";
-import { notFound, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { createContext, useContext } from "react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
@@ -148,7 +148,8 @@ export function ThreadsProvider({
         toast.error("You are not authorized to update this thread.");
         return;
       case 404:
-        router.push(notFound());
+        toast.error("Thread not found.");
+        router.push("/404");
         return;
       default:
         toast.error("Failed to update the thread. Please try again.");
@@ -207,7 +208,8 @@ export function ThreadsProvider({
         toast.error("You are not authorized to remove this thread.");
         return;
       case 404:
-        router.push(notFound());
+        toast.error("Thread not found.");
+        router.push("/404");
         return;
       default:
         toast.error("Failed to remove the thread. Please try again.");
