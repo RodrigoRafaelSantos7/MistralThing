@@ -20,6 +20,7 @@ export default defineSchema({
     modelId: v.string(), // The current model selected by the user
     pinnedModels: v.array(v.string()), // The models pinned by the user
   }).index("by_userId", ["userId"]),
+
   model: defineTable({
     modelId: v.string(), // Mistrals Model ID
     name: v.string(),
@@ -33,4 +34,12 @@ export default defineSchema({
       classification: v.optional(v.boolean()),
     }),
   }).index("by_modelId", ["modelId"]),
+
+  threads: defineTable({
+    userId: v.string(),
+    title: v.optional(v.string()),
+    slug: v.string(), // Used to identify the thread in the URL
+  })
+    .index("by_user", ["userId"])
+    .index("by_slug", ["slug"]),
 });
