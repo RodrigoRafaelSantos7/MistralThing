@@ -35,10 +35,11 @@ export default defineSchema({
     }),
   }).index("by_modelId", ["modelId"]),
 
-  threads: defineTable({
+  thread: defineTable({
     userId: v.string(),
     title: v.optional(v.string()),
     slug: v.string(), // Used to identify the thread in the URL
+    updatedAt: v.number(),
   })
     .index("by_user", ["userId"])
     .index("by_slug", ["slug"]),

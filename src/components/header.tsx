@@ -3,16 +3,16 @@
 import { ModelSelector } from "@/components/model-selector";
 import { ThemeSelector } from "@/components/theme-selector";
 import { UserMenu } from "@/components/user-menu";
-import { useParamsThreadId } from "@/hooks/use-params-thread-id";
+import { useParamsThreadSlug } from "@/hooks/use-params-thread-slug";
 import { cn } from "@/lib/utils";
 
 const Header = () => {
-  const threadId = useParamsThreadId();
+  const threadSlug = useParamsThreadSlug();
 
   return (
     <div
       className={cn(
-        threadId && "border-b",
+        threadSlug && "border-b",
         "absolute top-0 right-0 left-0 z-10 flex justify-between border-foreground/10 bg-background/50 backdrop-blur-md"
       )}
     >

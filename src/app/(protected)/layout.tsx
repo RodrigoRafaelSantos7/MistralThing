@@ -5,6 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { getToken } from "@/lib/auth/auth-server";
 import { ModelsProvider } from "@/lib/models-store/provider";
 import { loginPath } from "@/lib/paths";
+import { ThreadsProvider } from "@/lib/threads-store/threads/provider";
 import { UserSettingsProvider } from "@/lib/user-settings-store/provider";
 import { UserProvider } from "@/lib/user-store/provider";
 
@@ -15,26 +16,32 @@ export const metadata: Metadata = {
   },
 };
 
-const AuthLayout = async ({ children }: { children: React.ReactNode }) => {
+const ProtectedLayout = async ({ children }: { children: React.ReactNode }) => {
   const token = await getToken();
 
   if (!token) {
     return redirect(loginPath());
   }
 
-  const [initialSettings, initialModels, initialUser] = await Promise.all([
-    preloadQuery(api.settings.get, {}, { token }),
-    preloadQuery(api.models.list, {}, { token }),
-    preloadQuery(api.users.get, {}, { token }),
-  ]);
+  const [initialSettings, initialModels, initialUser, initialThreads] =
+    await Promise.all([
+      preloadQuery(api.settings.get, {}, { token }),
+      preloadQuery(api.models.list, {}, { token }),
+      preloadQuery(api.users.get, {}, { token }),
+      preloadQuery(api.threads.getAllThreadsForUser, {}, { token }),
+    ]);
 
   return (
     <UserSettingsProvider initialSettings={initialSettings}>
       <ModelsProvider initialModels={initialModels}>
-        <UserProvider initialUser={initialUser}>{children}</UserProvider>
+        <UserProvider initialUser={initialUser}>
+          <ThreadsProvider initialThreads={initialThreads}>
+            {children}
+          </ThreadsProvider>
+        </UserProvider>
       </ModelsProvider>
     </UserSettingsProvider>
   );
 };
 
-export default AuthLayout;
+export default ProtectedLayout;
