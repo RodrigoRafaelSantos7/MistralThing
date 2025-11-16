@@ -300,9 +300,11 @@ function ThreadItem({
           <Link
             className={cn(
               "absolute inset-0 flex w-full items-center gap-2 rounded-md px-2",
-              currentThread?._id === thread._id &&
-                "data-thread-active='true' bg-muted"
+              currentThread?._id === thread._id && "bg-muted"
             )}
+            data-thread-active={
+              currentThread?._id === thread._id ? "true" : undefined
+            }
             href={threadPath(thread.slug)}
             onMouseDown={(e) => {
               e.preventDefault();
