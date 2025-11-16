@@ -32,12 +32,12 @@ const ThemeSelector = () => {
   const { settings, updateSettings } = useUserSettings();
   const { setTheme } = useTheme();
 
-  useEffect(() => {
-    setTheme(`${settings.theme}-${settings.mode}`);
-  }, [settings.theme, settings.mode, setTheme]);
-
-  const mode = settings.mode ?? "dark";
+  const currentMode = settings.mode ?? "dark";
   const currentTheme = settings.theme ?? "default";
+
+  useEffect(() => {
+    setTheme(`${currentTheme}-${currentMode}`);
+  }, [currentTheme, currentMode, setTheme]);
 
   return (
     <Tooltip>
@@ -70,7 +70,7 @@ const ThemeSelector = () => {
                   <SunIcon className="size-4" />
                   <span>Light</span>
                   <div className="flex-1" />
-                  {mode === "light" && (
+                  {currentMode === "light" && (
                     <span className="text-muted-foreground text-xs">
                       Selected
                     </span>
@@ -88,7 +88,7 @@ const ThemeSelector = () => {
                   <MoonIcon className="size-4" />
                   <span>Dark</span>
                   <div className="flex-1" />
-                  {mode === "dark" && (
+                  {currentMode === "dark" && (
                     <span className="text-muted-foreground text-xs">
                       Selected
                     </span>
@@ -113,21 +113,21 @@ const ThemeSelector = () => {
                         <div
                           className={cn(
                             themeOption.value,
-                            mode,
+                            currentMode,
                             "size-3 rounded-[3px] bg-primary"
                           )}
                         />
                         <div
                           className={cn(
                             themeOption.value,
-                            mode,
+                            currentMode,
                             "size-3 rounded-[3px] bg-secondary"
                           )}
                         />
                         <div
                           className={cn(
                             themeOption.value,
-                            mode,
+                            currentMode,
                             "size-3 rounded-[3px] bg-accent"
                           )}
                         />
