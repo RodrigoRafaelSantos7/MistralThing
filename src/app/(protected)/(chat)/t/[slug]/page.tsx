@@ -1,15 +1,16 @@
 "use client";
 
-import { useParamsThreadSlug } from "@/hooks/use-params-thread-slug";
+import { notFound } from "next/navigation";
+import { useThreadSession } from "@/lib/threads-store/session/provider";
 
 const ThreadPage = () => {
-  const slug = useParamsThreadSlug();
+  const { currentThread } = useThreadSession();
 
-  if (!slug) {
-    return <div>Thread not found</div>;
+  if (!currentThread) {
+    return notFound();
   }
 
-  return <div>ThreadPage {slug}</div>;
+  return <div>ThreadPage {currentThread.slug}</div>;
 };
 
 export default ThreadPage;
