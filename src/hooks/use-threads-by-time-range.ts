@@ -1,4 +1,4 @@
-import type { Thread } from "@/lib/threads-store/threads/provider";
+import type { Thread } from "@/lib/threads-store/provider";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const DAYS_30 = 30;

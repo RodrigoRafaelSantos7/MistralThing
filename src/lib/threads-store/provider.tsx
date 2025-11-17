@@ -7,12 +7,42 @@ import { createContext, useContext } from "react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
-import { loginPath } from "@/lib/paths";
+import { loginPath } from "../paths";
 
 /**
  * The type of a thread defined in the database schema.
  */
 export type Thread = Doc<"thread">;
+
+/**
+ * The type of the props for the remove thread function.
+ */
+type RemoveThreadProps = {
+  /**
+   * The ID of the thread to remove.
+   */
+  threadId: Id<"thread">;
+};
+
+/**
+ * The type of the props for the update thread function.
+ */
+type UpdateThreadProps = {
+  /**
+   * The ID of the thread to update.
+   */
+  threadId: Id<"thread">;
+
+  /**
+   * The title of the thread to update.
+   */
+  title?: string;
+
+  /**
+   * The status of the thread to update.
+   */
+  status?: "ready" | "streaming" | "submitted" | "error";
+};
 
 /**
  * The context type for the threads provider.
@@ -22,14 +52,16 @@ type ThreadsContextType = {
    * The threads for the current user.
    */
   threads: Thread[];
+
   /**
-   * The function to update a thread.
+   * The mutation to remove a thread.
    */
-  updateThread: (props: UpdateThreadProps) => Promise<void>;
+  removeThread: (props: RemoveThreadProps) => void;
+
   /**
-   * The function to remove a thread.
+   * The mutation to update a thread.
    */
-  removeThread: (props: RemoveThreadProps) => Promise<void>;
+  updateThread: (props: UpdateThreadProps) => void;
 };
 
 /**
@@ -37,29 +69,12 @@ type ThreadsContextType = {
  */
 const ThreadsContext = createContext<ThreadsContextType | undefined>(undefined);
 
-type UpdateThreadProps = {
-  /**
-   * The ID of the thread to update.
-   */
-  threadId: Id<"thread">;
-  /**
-   * The title of the thread to update.
-   */
-  title?: string;
-};
-
-type RemoveThreadProps = {
-  /**
-   * The ID of the thread to remove.
-   */
-  threadId: Id<"thread">;
-};
-
 /**
  * The provider for the threads context.
  *
- * @param initialThreads - The initial threads for the current user.
+ * @param initialThreads - The initial threads (including messages) for the current user.
  * @param children - The children to render.
+ *
  * @returns The threads provider.
  */
 export function ThreadsProvider({
@@ -67,41 +82,21 @@ export function ThreadsProvider({
   children,
 }: {
   children: React.ReactNode;
-  initialThreads: Preloaded<typeof api.threads.getAllThreadsForUser>;
+  initialThreads: Preloaded<
+    typeof api.threads.getAllThreadsForUserWithMessages
+  >;
 }) {
   const router = useRouter();
-
   const threads = usePreloadedQuery(initialThreads);
 
-  const updateThreadMutation = useMutation(
-    api.threads.update
-  ).withOptimisticUpdate((localStore, args) => {
-    const { threadId, title } = args;
-    const currentThreads = localStore.getQuery(
-      api.threads.getAllThreadsForUser
-    );
-
-    // If the threads query is loaded, update it optimistically
-    if (currentThreads !== undefined) {
-      // Map through all threads and update the matching thread with the new title
-      // and current timestamp, leaving other threads unchanged
-      const updatedThreads = currentThreads.map((thread) =>
-        thread._id === threadId
-          ? { ...thread, title, updatedAt: Date.now() }
-          : thread
-      );
-
-      // Update the local store with the optimistically updated threads
-      localStore.setQuery(api.threads.getAllThreadsForUser, {}, updatedThreads);
-    }
-  });
-
+  /**
+   * The mutation to remove a thread. It is with optimistic updates.
+   */
   const removeThreadMutation = useMutation(
     api.threads.remove
-  ).withOptimisticUpdate((localStore, args) => {
-    const { threadId } = args;
+  ).withOptimisticUpdate((localStore, { threadId }) => {
     const currentThreads = localStore.getQuery(
-      api.threads.getAllThreadsForUser
+      api.threads.getAllThreadsForUserWithMessages
     );
 
     // If the threads query is loaded, remove the thread optimistically
@@ -112,69 +107,45 @@ export function ThreadsProvider({
       );
 
       // Update the local store with the optimistically updated threads
-      localStore.setQuery(api.threads.getAllThreadsForUser, {}, updatedThreads);
+      localStore.setQuery(
+        api.threads.getAllThreadsForUserWithMessages,
+        {},
+        updatedThreads
+      );
     }
   });
 
   /**
-   * Handles errors that occur when updating a thread.
-   *
-   * @param error - The error that occurred during the update operation
-   *
-   * @throws {Error} If the error is not a ConvexError, it is re-thrown
-   * @throws {ConvexError} If the error code is not handled (default case)
-   *
-   * Error codes handled:
-   * - 401: Redirects to login page (user not authenticated)
-   * - 403: Shows error toast (user not authorized)
-   * - 404: Redirects to not found page (thread not found)
-   * - default: Shows generic error toast and re-throws the error
+   * The mutation to update a thread. It is with optimistic updates.
    */
-  const handleUpdateThreadError = (error: unknown) => {
-    if (!(error instanceof ConvexError)) {
-      throw error;
-    }
+  const updateThreadMutation = useMutation(
+    api.threads.update
+  ).withOptimisticUpdate((localStore, { threadId, title, status }) => {
+    const currentThreads = localStore.getQuery(
+      api.threads.getAllThreadsForUserWithMessages
+    );
 
-    const code =
-      typeof (error.data as { code?: unknown })?.code === "number"
-        ? (error.data as { code: number }).code
-        : undefined;
+    // If the threads query is loaded, update it optimistically
+    if (currentThreads !== undefined) {
+      const updatedThreads = currentThreads.map((thread) =>
+        thread._id === threadId
+          ? {
+              ...thread,
+              title: title ?? thread.title,
+              status: status ?? thread.status,
+              updatedAt: Date.now(),
+            }
+          : thread
+      );
 
-    switch (code) {
-      case 401:
-        router.push(loginPath());
-        return;
-      case 403:
-        toast.error("You are not authorized to update this thread.");
-        return;
-      case 404:
-        toast.error("Thread not found.");
-        router.push("/404");
-        return;
-      default:
-        toast.error("Failed to update the thread. Please try again.");
-        throw error;
+      // Update the local store with the optimistically updated threads
+      localStore.setQuery(
+        api.threads.getAllThreadsForUserWithMessages,
+        {},
+        updatedThreads
+      );
     }
-  };
-
-  /**
-   * Updates a thread.
-   *
-   * @param props.threadId - The ID of the thread
-   * @param props.title - The title of the thread
-   *
-   * @redirects to login page if user is not authenticated
-   */
-  const updateThread = async ({ threadId, title }: UpdateThreadProps) => {
-    try {
-      await updateThreadMutation({
-        threadId,
-        title,
-      });
-    } catch (error) {
-      handleUpdateThreadError(error);
-    }
-  };
+  });
 
   /**
    * Handles errors that occur when removing a thread.
@@ -241,12 +212,72 @@ export function ThreadsProvider({
     }
   };
 
+  /**
+   * Handles errors that occur when updating a thread.
+   *
+   * @param error - The error that occurred during the update operation
+   *
+   * @throws {Error} If the error is not a ConvexError, it is re-thrown
+   * @throws {ConvexError} If the error code is not handled (default case)
+   *
+   * Error codes handled:
+   * - 401: Redirects to login page (user not authenticated)
+   * - 403: Shows error toast (user not authorized)
+   * - 404: Redirects to not found page (thread not found)
+   * - default: Shows generic error toast and re-throws the error
+   */
+  const handleUpdateThreadError = (error: unknown) => {
+    if (!(error instanceof ConvexError)) {
+      throw error;
+    }
+
+    const code =
+      typeof (error.data as { code?: unknown })?.code === "number"
+        ? (error.data as { code: number }).code
+        : undefined;
+
+    switch (code) {
+      case 401:
+        router.push(loginPath());
+        return;
+      case 403:
+        toast.error("You are not authorized to update this thread.");
+        return;
+      case 404:
+        toast.error("Thread not found.");
+        router.push("/404");
+        return;
+      default:
+        toast.error("Failed to update the thread. Please try again.");
+        throw error;
+    }
+  };
+
+  /**
+   * Updates a thread.
+   *
+   * @param props.threadId - The ID of the thread
+   * @param props.title - The title of the thread
+   *
+   * @redirects to login page if user is not authenticated
+   */
+  const updateThread = async ({ threadId, title }: UpdateThreadProps) => {
+    try {
+      await updateThreadMutation({
+        threadId,
+        title,
+      });
+    } catch (error) {
+      handleUpdateThreadError(error);
+    }
+  };
+
   return (
     <ThreadsContext.Provider
       value={{
         threads,
-        updateThread,
         removeThread,
+        updateThread,
       }}
     >
       {children}

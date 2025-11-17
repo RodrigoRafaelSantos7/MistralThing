@@ -102,13 +102,13 @@ export const getThreadBySlug = query({
 });
 
 /**
- * Retrieves all threads for a user.
+ * Retrieves all threads for a user with their messages .
  *
- * @returns All threads for the user
+ * @returns All threads for the user with their messages
  *
  * @throws {ConvexError} 401 if user not found/not authenticated
  */
-export const getAllThreadsForUser = query({
+export const getAllThreadsForUserWithMessages = query({
   args: {},
   handler: async (ctx) => {
     const user = await authComponent.getAuthUser(ctx).catch(() => null);
@@ -126,7 +126,18 @@ export const getAllThreadsForUser = query({
       .withIndex("by_user", (q) => q.eq("userId", user._id))
       .collect();
 
-    return threads;
+    const threadsWithMessages = await Promise.all(
+      threads.map(async (thread) => {
+        const messages = await ctx.db
+          .query("message")
+          .withIndex("by_thread", (q) => q.eq("threadId", thread._id))
+          .order("asc")
+          .collect();
+        return { ...thread, messages };
+      })
+    );
+
+    return threadsWithMessages;
   },
 });
 
@@ -146,8 +157,16 @@ export const update = mutation({
   args: {
     threadId: v.id("thread"),
     title: v.optional(v.string()),
+    status: v.optional(
+      v.union(
+        v.literal("ready"),
+        v.literal("streaming"),
+        v.literal("submitted"),
+        v.literal("error")
+      )
+    ),
   },
-  handler: async (ctx, { threadId, title }) => {
+  handler: async (ctx, { threadId, title, status }) => {
     const user = await authComponent.getAuthUser(ctx).catch(() => null);
 
     if (!user) {
@@ -177,7 +196,8 @@ export const update = mutation({
     }
 
     await ctx.db.patch(threadId, {
-      title,
+      title: title ?? thread.title,
+      status: status ?? thread.status,
       updatedAt: Date.now(),
     });
   },

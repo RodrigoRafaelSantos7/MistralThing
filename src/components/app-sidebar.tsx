@@ -1,5 +1,3 @@
-/** biome-ignore-all lint/complexity/noExcessiveCognitiveComplexity: This is a keyboard shortcut handler */
-
 "use client";
 
 import { useForm } from "@tanstack/react-form";
@@ -37,9 +35,8 @@ import {
 } from "@/components/ui/tooltip";
 import { useThreadsByTimeRange } from "@/hooks/use-threads-by-time-range";
 import { indexPath, threadPath } from "@/lib/paths";
-import { useThreadSession } from "@/lib/threads-store/session/provider";
-import type { Thread } from "@/lib/threads-store/threads/provider";
-import { useThreads } from "@/lib/threads-store/threads/provider";
+import { type Thread, useThreads } from "@/lib/threads-store/provider";
+import { useCurrentThread } from "@/lib/threads-store/session/provider";
 import { cn } from "@/lib/utils";
 
 export function AppSidebar() {
@@ -109,46 +106,77 @@ function AppSidebarActions() {
 
 function AppSidebarKeyboardShortcuts() {
   const router = useRouter();
-  const { currentThread } = useThreadSession();
+  const { currentThread } = useCurrentThread();
   const { threads } = useThreads();
+
+  const handleNewChatShortcut = useCallback(
+    (e: KeyboardEvent, isMeta: boolean) => {
+      if (e.shiftKey && isMeta && (e.key === "o" || e.key === "O")) {
+        e.preventDefault();
+        e.stopPropagation();
+        router.push(indexPath());
+        return true;
+      }
+      return false;
+    },
+    [router]
+  );
+
+  const calculateNextIndex = useCallback(
+    (currentIndex: number, direction: "up" | "down", totalThreads: number) => {
+      if (direction === "up") {
+        return currentIndex <= 0 ? totalThreads - 1 : currentIndex - 1;
+      }
+      return currentIndex >= totalThreads - 1 ? 0 : currentIndex + 1;
+    },
+    []
+  );
+
+  const handleThreadNavigation = useCallback(
+    (e: KeyboardEvent) => {
+      if (!e.shiftKey || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) {
+        return;
+      }
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (threads.length === 0) {
+        return;
+      }
+
+      const currentIndex = threads.findIndex(
+        (thread) => thread._id === currentThread?._id
+      );
+
+      const direction = e.key === "ArrowUp" ? "up" : "down";
+      const nextIndex = calculateNextIndex(
+        currentIndex,
+        direction,
+        threads.length
+      );
+
+      const nextThread = threads[nextIndex];
+      if (nextThread) {
+        router.push(threadPath(nextThread.slug));
+      }
+    },
+    [threads, currentThread, router, calculateNextIndex]
+  );
 
   const onHandleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       const isMeta = navigator.platform.toLowerCase().includes("mac")
         ? e.metaKey
         : e.ctrlKey;
-      if (e.shiftKey && isMeta && (e.key === "o" || e.key === "O")) {
-        e.preventDefault();
-        e.stopPropagation();
-        router.push(indexPath());
+
+      if (handleNewChatShortcut(e, isMeta)) {
         return;
       }
-      if (e.shiftKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
-        e.preventDefault();
-        e.stopPropagation();
 
-        if (threads.length === 0) {
-          return;
-        }
-
-        const currentIndex = threads.findIndex(
-          (thread) => thread._id === currentThread?._id
-        );
-
-        let nextIndex: number;
-        if (e.key === "ArrowUp") {
-          nextIndex = currentIndex <= 0 ? threads.length - 1 : currentIndex - 1;
-        } else {
-          nextIndex = currentIndex >= threads.length - 1 ? 0 : currentIndex + 1;
-        }
-
-        const nextThread = threads[nextIndex];
-        if (nextThread) {
-          router.push(threadPath(nextThread.slug));
-        }
-      }
+      handleThreadNavigation(e);
     },
-    [threads, currentThread, router]
+    [handleNewChatShortcut, handleThreadNavigation]
   );
 
   useEffect(() => {
@@ -291,8 +319,9 @@ function ThreadItem({
   setThreadToEdit: (thread: Thread) => void;
   setThreadToDelete: (thread: Thread) => void;
 }) {
-  const { currentThread } = useThreadSession();
+  const { currentThread } = useCurrentThread();
   const router = useRouter();
+
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild>
@@ -482,7 +511,7 @@ function DeleteChatDialog({
   setThreadToDelete: (thread: Thread | null) => void;
 }) {
   const { removeThread } = useThreads();
-  const { currentThread } = useThreadSession();
+  const { currentThread } = useCurrentThread();
   const router = useRouter();
 
   function handleDelete() {
@@ -518,7 +547,7 @@ function DeleteChatDialog({
           >
             Cancel
           </Button>
-          <Button onClick={handleDelete} type="button" variant="destructive">
+          <Button onClick={handleDelete} type="button">
             Delete
           </Button>
         </DialogFooter>

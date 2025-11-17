@@ -5,7 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { getToken } from "@/lib/auth/auth-server";
 import { ModelsProvider } from "@/lib/models-store/provider";
 import { loginPath } from "@/lib/paths";
-import { ThreadsProvider } from "@/lib/threads-store/threads/provider";
+import { ThreadsProvider } from "@/lib/threads-store/provider";
 import { UserSettingsProvider } from "@/lib/user-settings-store/provider";
 import { UserProvider } from "@/lib/user-store/provider";
 
@@ -28,7 +28,7 @@ const ProtectedLayout = async ({ children }: { children: React.ReactNode }) => {
       preloadQuery(api.settings.get, {}, { token }),
       preloadQuery(api.models.list, {}, { token }),
       preloadQuery(api.users.get, {}, { token }),
-      preloadQuery(api.threads.getAllThreadsForUser, {}, { token }),
+      preloadQuery(api.threads.getAllThreadsForUserWithMessages, {}, { token }),
     ]);
 
   return (
