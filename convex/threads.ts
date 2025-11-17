@@ -264,3 +264,48 @@ export const bump = internalMutation({
     });
   },
 });
+
+/**
+ * Creates a new thread.
+ *
+ * @param args.slug - The slug of the thread
+ *
+ * @throws {ConvexError} 401 if user not found/not authenticated
+ * @throws {ConvexError} 400 if thread with this slug already exists
+ */
+export const create = mutation({
+  args: {
+    slug: v.string(),
+  },
+  handler: async (ctx, { slug }) => {
+    const user = await authComponent.getAuthUser(ctx).catch(() => null);
+
+    if (!user) {
+      throw new ConvexError({
+        code: 401,
+        message: "User not found. Please login to continue.",
+        severity: "high",
+      });
+    }
+
+    const existingThread = await ctx.db
+      .query("thread")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .unique();
+
+    if (existingThread) {
+      throw new ConvexError({
+        code: 400,
+        message: "Thread with this slug already exists.",
+        severity: "high",
+      });
+    }
+
+    return await ctx.db.insert("thread", {
+      userId: user._id,
+      slug,
+      status: "ready",
+      updatedAt: Date.now(),
+    });
+  },
+});

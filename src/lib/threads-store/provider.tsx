@@ -7,7 +7,8 @@ import { createContext, useContext } from "react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
-import { loginPath } from "../paths";
+import { indexPath, loginPath, threadPath } from "../paths";
+import { nanoid } from "../utils";
 
 /**
  * The type of a message defined in the database schema.
@@ -74,6 +75,11 @@ type ThreadsContextType = {
    * The mutation to update a thread.
    */
   updateThread: (props: UpdateThreadProps) => void;
+
+  /**
+   * The mutation to create a thread.
+   */
+  createThread: () => Promise<void>;
 };
 
 /**
@@ -157,6 +163,33 @@ export function ThreadsProvider({
         {},
         updatedThreads
       );
+    }
+  });
+
+  /**
+   * The mutation to create a thread. It is with optimistic updates.
+   */
+  const createThreadMutation = useMutation(
+    api.threads.create
+  ).withOptimisticUpdate((localStore, { slug }) => {
+    const currentThreads = localStore.getQuery(
+      api.threads.getAllThreadsForUserWithMessages
+    );
+
+    // If the threads query is loaded, add the thread optimistically
+    if (currentThreads !== undefined) {
+      const optimisticThread = {
+        _id: "temp",
+        slug,
+        status: "ready" as const,
+        updatedAt: Date.now(),
+        messages: [],
+      } as unknown as ThreadWithMessages;
+
+      localStore.setQuery(api.threads.getAllThreadsForUserWithMessages, {}, [
+        ...currentThreads,
+        optimisticThread,
+      ]);
     }
   });
 
@@ -285,12 +318,83 @@ export function ThreadsProvider({
     }
   };
 
+  /**
+   * Handles errors that occur when creating a thread.
+   *
+   * @param error - The error that occurred during the create operation
+   *
+   * @throws {Error} If the error is not a ConvexError, it is re-thrown
+   * @throws {ConvexError} If the error code is not handled (default case)
+   *
+   * Error codes handled:
+   * - 401: Redirects to login page (user not authenticated)
+   * - 400: Shows error toast (thread with slug already exists)
+   * - default: Shows generic error toast and re-throws the error
+   */
+  const handleCreateThreadError = (error: unknown) => {
+    if (!(error instanceof ConvexError)) {
+      throw error;
+    }
+
+    const code =
+      typeof (error.data as { code?: unknown })?.code === "number"
+        ? (error.data as { code: number }).code
+        : undefined;
+
+    switch (code) {
+      case 401:
+        router.push(loginPath());
+        return;
+      case 400:
+        toast.error(
+          "A thread with this slug already exists. Please try again."
+        );
+        return;
+      default:
+        toast.error("Failed to create the thread. Please try again.");
+        throw error;
+    }
+  };
+
+  /**
+   * Creates a new thread.
+   *
+   * @throws {Error} If the error is not a ConvexError, it is re-thrown
+   * @throws {ConvexError} If the error code is not handled (default case)
+   *
+   * Error codes handled:
+   * - 401: Redirects to login page (user not authenticated)
+   * - 400: Shows error toast (thread with slug already exists)
+   * - default: Shows generic error toast and re-throws the error
+   */
+  const createThread = async () => {
+    const slug = nanoid();
+
+    // Trigger the mutation (optimistic update happens immediately)
+    const mutationPromise = createThreadMutation({
+      slug,
+    });
+
+    // Redirect immediately - the optimistic update ensures the thread
+    // is in local state, so the page will find it
+    router.push(threadPath(slug));
+
+    try {
+      await mutationPromise;
+    } catch (error) {
+      // If creation fails, redirect back to home page
+      router.push(indexPath());
+      handleCreateThreadError(error);
+    }
+  };
+
   return (
     <ThreadsContext.Provider
       value={{
         threads,
         removeThread,
         updateThread,
+        createThread,
       }}
     >
       {children}

@@ -10,12 +10,13 @@ import {
   PromptInputActions,
   PromptInputTextarea,
 } from "@/components/ui/prompt-input";
+import { useThreads } from "@/lib/threads-store/provider";
 import { useCurrentThread } from "@/lib/threads-store/session/provider";
 import { cn } from "@/lib/utils";
 
 const ChatInput = () => {
   const [input, setInput] = useState("");
-  // const { sendMessage } = useThreadContext();
+  const { createThread } = useThreads();
   const { currentThread } = useCurrentThread();
   const status = currentThread?.status;
 
@@ -24,7 +25,9 @@ const ChatInput = () => {
       return;
     }
 
-    await console.log(input);
+    if (!currentThread) {
+      await createThread();
+    }
 
     // Reset form state
     setInput("");
