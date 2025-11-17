@@ -185,7 +185,7 @@ function PromptInputAction({
       <TooltipTrigger asChild disabled={disabled}>
         {children}
       </TooltipTrigger>
-      <TooltipContent asChild className={className} side={side}>
+      <TooltipContent className={className} side={side}>
         {tooltip}
       </TooltipContent>
     </Tooltip>

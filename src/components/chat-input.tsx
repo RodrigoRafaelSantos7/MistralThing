@@ -93,7 +93,6 @@ const ChatInput = () => {
                 .with(
                   {
                     input: P.string.maxLength(0),
-                    status: "ready",
                   },
                   () => true
                 )
