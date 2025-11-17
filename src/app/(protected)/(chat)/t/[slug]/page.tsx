@@ -1,6 +1,7 @@
 "use client";
 
 import { notFound } from "next/navigation";
+import { MessageList } from "@/components/message-list";
 import { useCurrentThread } from "@/lib/threads-store/session/provider";
 
 const Page = () => {
@@ -10,13 +11,7 @@ const Page = () => {
     notFound();
   }
 
-  return (
-    <div className="mt-20 flex flex-1 flex-col">
-      <h1 className="font-bold text-2xl">
-        {currentThread.messages?.map((message) => message.content).join("\n")}
-      </h1>
-    </div>
-  );
+  return <MessageList />;
 };
 
 export default Page;
