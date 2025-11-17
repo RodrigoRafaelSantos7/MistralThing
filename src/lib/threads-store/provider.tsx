@@ -10,9 +10,21 @@ import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { loginPath } from "../paths";
 
 /**
+ * The type of a message defined in the database schema.
+ */
+export type Message = Doc<"message">;
+
+/**
  * The type of a thread defined in the database schema.
  */
 export type Thread = Doc<"thread">;
+
+/**
+ * The type of a thread with its messages.
+ */
+export type ThreadWithMessages = Thread & {
+  messages: Message[];
+};
 
 /**
  * The type of the props for the remove thread function.
@@ -49,9 +61,9 @@ type UpdateThreadProps = {
  */
 type ThreadsContextType = {
   /**
-   * The threads for the current user.
+   * The threads for the current user (with messages).
    */
-  threads: Thread[];
+  threads: ThreadWithMessages[];
 
   /**
    * The mutation to remove a thread.
@@ -134,6 +146,7 @@ export function ThreadsProvider({
               title: title ?? thread.title,
               status: status ?? thread.status,
               updatedAt: Date.now(),
+              messages: thread.messages, // Preserve messages in optimistic update
             }
           : thread
       );

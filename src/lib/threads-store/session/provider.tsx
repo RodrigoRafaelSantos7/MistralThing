@@ -2,16 +2,19 @@
 
 import { createContext, useContext, useMemo } from "react";
 import { useParamsThreadSlug } from "@/hooks/use-params-thread-slug";
-import { type Thread, useThreads } from "@/lib/threads-store/provider";
+import {
+  type ThreadWithMessages,
+  useThreads,
+} from "@/lib/threads-store/provider";
 
 /**
  * The context type for the threads provider.
  */
 type CurrentThreadContextType = {
   /**
-   * The current thread.
+   * The current thread (with messages).
    */
-  currentThread?: Thread;
+  currentThread?: ThreadWithMessages;
 };
 
 /**
