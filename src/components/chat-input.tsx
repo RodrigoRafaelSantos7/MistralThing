@@ -24,7 +24,6 @@ const ChatInput = () => {
     if (!input?.trim()) {
       return;
     }
-
     if (!currentThread) {
       await createThread();
     }
@@ -74,7 +73,7 @@ const ChatInput = () => {
         value={input}
       >
         <PromptInputTextarea
-          className="px-6"
+          className="px-6 pt-6"
           placeholder="Ask me anything..."
         />
         <PromptInputActions className="flex items-center px-3 pb-3">

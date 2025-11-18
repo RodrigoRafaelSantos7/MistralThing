@@ -58,6 +58,6 @@ export default defineSchema({
       v.literal("system")
     ),
     content: v.string(),
-    isStreaming: v.optional(v.boolean()),
+    isStreaming: v.boolean(),
   }).index("by_thread", ["threadId"]),
 });

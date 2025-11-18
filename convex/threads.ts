@@ -309,3 +309,24 @@ export const create = mutation({
     });
   },
 });
+
+/**
+ * Updates the status of a thread.
+ *
+ * @param args.threadId - The ID of the thread
+ * @param args.status - The status to update the thread to
+ */
+export const updateStatus = internalMutation({
+  args: {
+    threadId: v.id("thread"),
+    status: v.union(
+      v.literal("ready"),
+      v.literal("streaming"),
+      v.literal("submitted"),
+      v.literal("error")
+    ),
+  },
+  handler: async (ctx, { threadId, status }) => {
+    await ctx.db.patch(threadId, { status, updatedAt: Date.now() });
+  },
+});
