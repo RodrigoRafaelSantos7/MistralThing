@@ -54,6 +54,7 @@ export const generateResponse = internalAction({
       const stream = await client.chat.stream({
         model: modelId,
         messages: history,
+        safePrompt: true,
       });
 
       let fullResponse = "";
