@@ -13,8 +13,6 @@ import { query } from "./_generated/server";
 
 const siteUrl = process.env.SITE_URL as string;
 
-console.log(siteUrl);
-
 const authFunctions: AuthFunctions = internal.auth;
 
 export const authComponent = createClient<DataModel>(components.betterAuth, {
