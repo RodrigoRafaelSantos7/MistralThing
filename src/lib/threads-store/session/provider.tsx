@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo } from "react";
+import { createContext, useContext } from "react";
 import { useParamsThreadSlug } from "@/hooks/use-params-thread-slug";
 import {
   type ThreadWithMessages,
@@ -40,10 +40,7 @@ export function CurrentThreadProvider({
   const slug = useParamsThreadSlug();
   const { threads } = useThreads();
 
-  const currentThread = useMemo(
-    () => threads.find((thread) => thread.slug === slug),
-    [threads, slug]
-  );
+  const currentThread = threads.find((thread) => thread.slug === slug);
 
   return (
     <CurrentThreadContext.Provider

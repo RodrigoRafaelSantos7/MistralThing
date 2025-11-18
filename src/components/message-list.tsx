@@ -1,20 +1,32 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useQuery } from "convex/react";
+import { useEffect, useMemo, useRef } from "react";
 import { StickToBottom, useStickToBottom } from "use-stick-to-bottom";
 import { Virtualizer, type VirtualizerHandle } from "virtua";
 import { ChatInput } from "@/components/chat-input";
 import { MessageItem } from "@/components/message-item";
+import { api } from "@/convex/_generated/api";
 import { useCurrentThread } from "@/lib/threads-store/session/provider";
 
 export function MessageList() {
   const mounted = useRef(false);
   const ref = useRef<VirtualizerHandle>(null);
   const { currentThread } = useCurrentThread();
-  const messageIds =
-    currentThread?.messages
-      ?.filter((m) => m.role !== "system")
-      ?.map((message) => message._id) ?? [];
+  const messages = useQuery(
+    api.messages.listByThread,
+    currentThread?._id ? { threadId: currentThread._id } : "skip"
+  );
+
+  const filteredMessages = useMemo(
+    () => (messages ?? [])?.filter((m) => m.role !== "system"),
+    [messages]
+  );
+
+  const messageIds = useMemo(
+    () => filteredMessages.map((message) => message._id),
+    [filteredMessages]
+  );
   const isStreaming = currentThread?.status === "streaming";
 
   const instance = useStickToBottom({
@@ -49,8 +61,14 @@ export function MessageList() {
         scrollRef={instance.scrollRef}
         ssrCount={messageIds?.length ?? 0}
       >
-        {messageIds.map((id) => (
-          <MessageItem id={id} key={id} />
+        {filteredMessages.map((message, index) => (
+          <MessageItem
+            hasNextMessage={index < filteredMessages.length - 1}
+            hasPreviousMessage={index > 0}
+            id={message._id}
+            key={message._id}
+            message={message}
+          />
         ))}
       </Virtualizer>
       <ChatInput />
