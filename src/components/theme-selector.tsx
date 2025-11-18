@@ -30,14 +30,17 @@ import { cn } from "@/lib/utils";
 const ThemeSelector = () => {
   const [open, setOpen] = useState(false);
   const { settings, updateSettings } = useUserSettings();
-  const { setTheme } = useTheme();
+  const { setTheme, theme } = useTheme();
 
   const currentMode = settings.mode ?? "dark";
   const currentTheme = settings.theme ?? "default";
+  const targetTheme = `${currentTheme}-${currentMode}`;
 
   useEffect(() => {
-    setTheme(`${currentTheme}-${currentMode}`);
-  }, [currentTheme, currentMode, setTheme]);
+    if (theme !== targetTheme) {
+      setTheme(targetTheme);
+    }
+  }, [setTheme, targetTheme, theme]);
 
   return (
     <Tooltip>
@@ -61,9 +64,11 @@ const ThemeSelector = () => {
                 <CommandItem
                   className="data-[selected=true]:bg-foreground/10 data-[selected=true]:text-foreground"
                   onSelect={() => {
-                    updateSettings({
-                      mode: "light",
-                    });
+                    const nextTheme = `${currentTheme}-light`;
+                    if (theme !== nextTheme) {
+                      setTheme(nextTheme);
+                    }
+                    updateSettings({ mode: "light" });
                   }}
                   value="light"
                 >
@@ -79,9 +84,11 @@ const ThemeSelector = () => {
                 <CommandItem
                   className="data-[selected=true]:bg-foreground/10 data-[selected=true]:text-foreground"
                   onSelect={() => {
-                    updateSettings({
-                      mode: "dark",
-                    });
+                    const nextTheme = `${currentTheme}-dark`;
+                    if (theme !== nextTheme) {
+                      setTheme(nextTheme);
+                    }
+                    updateSettings({ mode: "dark" });
                   }}
                   value="dark"
                 >
@@ -102,9 +109,11 @@ const ThemeSelector = () => {
                     className="data-[selected=true]:bg-foreground/10 data-[selected=true]:text-foreground"
                     key={themeOption.value}
                     onSelect={() => {
-                      updateSettings({
-                        theme: themeOption.value,
-                      });
+                      const nextTheme = `${themeOption.value}-${currentMode}`;
+                      if (theme !== nextTheme) {
+                        setTheme(nextTheme);
+                      }
+                      updateSettings({ theme: themeOption.value });
                     }}
                     value={themeOption.name}
                   >
