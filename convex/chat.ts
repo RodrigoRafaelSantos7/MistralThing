@@ -85,8 +85,7 @@ export const generateResponse = internalAction({
     } catch (error) {
       await ctx.runMutation(internal.messages.updateMessageInternal, {
         messageId: assistantMessageId,
-        content:
-          "An error occurred while generating the response. Please try again.",
+        content: "We are rate limited. Please try again later.",
         isStreaming: false,
       });
 
