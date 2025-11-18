@@ -4,15 +4,17 @@ import { useEffect, useRef } from "react";
 import { StickToBottom, useStickToBottom } from "use-stick-to-bottom";
 import { Virtualizer, type VirtualizerHandle } from "virtua";
 import { ChatInput } from "@/components/chat-input";
+import { MessageItem } from "@/components/message-item";
 import { useCurrentThread } from "@/lib/threads-store/session/provider";
-import { MessageItem } from "./ui/message-item";
 
 export function MessageList() {
   const mounted = useRef(false);
   const ref = useRef<VirtualizerHandle>(null);
   const { currentThread } = useCurrentThread();
   const messageIds =
-    currentThread?.messages?.map((message) => message._id) ?? [];
+    currentThread?.messages
+      ?.filter((m) => m.role !== "system")
+      ?.map((message) => message._id) ?? [];
   const isStreaming = currentThread?.status === "streaming";
 
   const instance = useStickToBottom({
