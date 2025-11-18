@@ -44,7 +44,7 @@ export function MessageList() {
         as={StickToBottom.Content}
         ref={ref}
         scrollRef={instance.scrollRef}
-        ssrCount={messageIds.length}
+        ssrCount={messageIds?.length ?? 0}
       >
         {messageIds.map((id) => (
           <div className="mt-20" key={id}>
