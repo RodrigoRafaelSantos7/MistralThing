@@ -1,3 +1,4 @@
+import { useMutation } from "convex/react";
 import { motion } from "framer-motion";
 import { ArrowUpIcon, SquareIcon } from "lucide-react";
 import { Activity, useMemo, useState } from "react";
@@ -10,12 +11,14 @@ import {
   PromptInputActions,
   PromptInputTextarea,
 } from "@/components/ui/prompt-input";
+import { api } from "@/convex/_generated/api";
 import { useThreads } from "@/lib/threads-store/provider";
 import { useCurrentThread } from "@/lib/threads-store/session/provider";
 import { cn } from "@/lib/utils";
 
 const ChatInput = () => {
   const [input, setInput] = useState("");
+  const sendMessage = useMutation(api.chat.sendMessage);
   const { createThread } = useThreads();
   const { currentThread } = useCurrentThread();
   const status = currentThread?.status;
@@ -26,6 +29,13 @@ const ChatInput = () => {
     }
     if (!currentThread) {
       await createThread();
+    }
+
+    if (currentThread) {
+      await sendMessage({
+        threadId: currentThread._id,
+        message: input,
+      });
     }
 
     // Reset form state

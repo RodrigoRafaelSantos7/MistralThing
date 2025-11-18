@@ -47,10 +47,11 @@ export function MessageList() {
         ssrCount={messageIds.length}
       >
         {messageIds.map((id) => (
-          <div key={id}>
+          <div className="mt-20" key={id}>
             {
-              currentThread?.messages?.find((message) => message._id === id)
-                ?.content
+              currentThread?.messages?.find(
+                (message) => message._id === id && message.role !== "system"
+              )?.content
             }
           </div>
         ))}

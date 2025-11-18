@@ -518,9 +518,14 @@ function DeleteChatDialog({
     if (!thread) {
       return;
     }
-    removeThread({ threadId: thread._id });
-    if (currentThread?._id === thread._id) {
+
+    const isCurrentThread = currentThread?._id === thread._id;
+
+    if (isCurrentThread) {
       router.push(indexPath());
+      removeThread({ threadId: thread._id });
+    } else {
+      removeThread({ threadId: thread._id });
     }
     setThreadToDelete(null);
   }

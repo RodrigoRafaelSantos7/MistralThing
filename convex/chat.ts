@@ -206,8 +206,6 @@ export const sendMessage = mutation({
       history,
       modelId: settings.modelId,
     });
-
-    return null;
   },
 });
 
