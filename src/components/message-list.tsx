@@ -5,6 +5,7 @@ import { StickToBottom, useStickToBottom } from "use-stick-to-bottom";
 import { Virtualizer, type VirtualizerHandle } from "virtua";
 import { ChatInput } from "@/components/chat-input";
 import { useCurrentThread } from "@/lib/threads-store/session/provider";
+import { MessageItem } from "./ui/message-item";
 
 export function MessageList() {
   const mounted = useRef(false);
@@ -47,13 +48,7 @@ export function MessageList() {
         ssrCount={messageIds?.length ?? 0}
       >
         {messageIds.map((id) => (
-          <div className="mt-20" key={id}>
-            {
-              currentThread?.messages?.find(
-                (message) => message._id === id && message.role !== "system"
-              )?.content
-            }
-          </div>
+          <MessageItem id={id} key={id} />
         ))}
       </Virtualizer>
       <ChatInput />
