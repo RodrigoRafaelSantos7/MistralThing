@@ -330,3 +330,19 @@ export const updateStatus = internalMutation({
     await ctx.db.patch(threadId, { status, updatedAt: Date.now() });
   },
 });
+
+/**
+ * Updates the title of a thread.
+ *
+ * @param args.threadId - The ID of the thread
+ * @param args.title - The title to update the thread to
+ */
+export const updateTitle = internalMutation({
+  args: {
+    threadId: v.id("thread"),
+    title: v.string(),
+  },
+  handler: async (ctx, { threadId, title }) => {
+    await ctx.db.patch(threadId, { title, updatedAt: Date.now() });
+  },
+});
