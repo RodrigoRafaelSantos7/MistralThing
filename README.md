@@ -23,7 +23,7 @@
 Mistral Thing is a sleek and modern AI chat application. It allows you to interact with large language models from Mistral AI.
 
 <div align="center">
-  <img src="public/screenshot.png" alt="Screenshot" width="100%">
+  <img src="https://github.com/RodrigoRafaelSantos7/mistral-thing/blob/main/public/screenshot" alt="Screenshot" width="100%">
 </div>
 
 ## Built With
