@@ -156,7 +156,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
     const language = extractLanguage(props.className);
 
     return (
-      <CodeBlock>
+      <CodeBlock className="my-2">
         <CodeBlockCode
           code={(props.children as string)?.replace("\n```*", "")}
           language={language?.trim() || "plaintext"}
