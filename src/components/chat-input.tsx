@@ -1,7 +1,8 @@
 import { useMutation } from "convex/react";
 import { motion } from "framer-motion";
 import { ArrowUpIcon, SquareIcon } from "lucide-react";
-import { Activity, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Activity, useMemo, useRef, useState } from "react";
 import { match, P } from "ts-pattern";
 import { ScrollToBottomButton } from "@/components/scroll-to-bottom-button";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,8 @@ import {
   PromptInputTextarea,
 } from "@/components/ui/prompt-input";
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
+import { threadPath } from "@/lib/paths";
 import { useThreads } from "@/lib/threads-store/provider";
 import { useCurrentThread } from "@/lib/threads-store/session/provider";
 import { cn } from "@/lib/utils";
@@ -21,25 +24,64 @@ const ChatInput = () => {
   const sendMessage = useMutation(api.chat.sendMessage);
   const { createThread } = useThreads();
   const { currentThread } = useCurrentThread();
+  const router = useRouter();
   const status = currentThread?.status;
+  const isSubmittingRef = useRef(false);
+
+  const ensureThread = async (): Promise<
+    { threadId: Id<"thread">; slug: string } | undefined
+  > => {
+    if (currentThread?._id && currentThread?.slug) {
+      return {
+        threadId: currentThread._id,
+        slug: currentThread.slug,
+      };
+    }
+
+    // Otherwise, create a new thread
+    const result = await createThread();
+    if (!result) {
+      return;
+    }
+
+    // Navigate to the new thread's URL
+    router.push(threadPath(result.slug));
+
+    return {
+      threadId: result.threadId,
+      slug: result.slug,
+    };
+  };
 
   const handleSubmit = async () => {
     if (!input?.trim()) {
       return;
     }
-    if (!currentThread) {
-      await createThread();
+
+    // Prevent multiple simultaneous submissions
+    if (isSubmittingRef.current) {
+      return;
     }
 
-    if (currentThread) {
+    try {
+      isSubmittingRef.current = true;
+
+      // Ensure we have a thread before sending the message
+      const threadInfo = await ensureThread();
+      if (!threadInfo) {
+        return;
+      }
+
       await sendMessage({
-        threadId: currentThread._id,
+        threadId: threadInfo.threadId,
         message: input,
       });
-    }
 
-    // Reset form state
-    setInput("");
+      // Reset form state
+      setInput("");
+    } finally {
+      isSubmittingRef.current = false;
+    }
   };
 
   const matcher = useMemo(

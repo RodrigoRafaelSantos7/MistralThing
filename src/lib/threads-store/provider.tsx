@@ -7,7 +7,7 @@ import { createContext, useContext } from "react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Doc, Id } from "@/convex/_generated/dataModel";
-import { indexPath, loginPath, threadPath } from "../paths";
+import { indexPath, loginPath } from "../paths";
 import { nanoid } from "../utils";
 
 /**
@@ -79,7 +79,9 @@ type ThreadsContextType = {
   /**
    * The mutation to create a thread.
    */
-  createThread: () => Promise<void>;
+  createThread: () => Promise<
+    { slug: string; threadId: Id<"thread"> } | undefined
+  >;
 };
 
 /**
@@ -375,12 +377,9 @@ export function ThreadsProvider({
       slug,
     });
 
-    // Redirect immediately - the optimistic update ensures the thread
-    // is in local state, so the page will find it
-    router.push(threadPath(slug));
-
     try {
-      await mutationPromise;
+      const threadId = await mutationPromise;
+      return { slug, threadId };
     } catch (error) {
       // If creation fails, redirect back to home page
       router.push(indexPath());

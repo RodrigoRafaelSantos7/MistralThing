@@ -227,13 +227,15 @@ export const generateTitle = internalAction({
       });
 
       const result = await client.chat.complete({
-        model: "mistral-tiny-latest",
+        model: "mistral-small-latest",
         messages: [
           { role: "system", content: titlePrompt },
           { role: "user", content },
         ],
         temperature: 0.8,
       });
+
+      console.log(result);
 
       await ctx.runMutation(internal.threads.updateTitle, {
         threadId,
