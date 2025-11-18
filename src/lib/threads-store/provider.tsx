@@ -183,7 +183,7 @@ export function ThreadsProvider({
       const optimisticThread = {
         _id: "temp",
         slug,
-        status: "ready" as const,
+        status: "submitted" as const,
         updatedAt: Date.now(),
         messages: [],
       } as unknown as ThreadWithMessages;

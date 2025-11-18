@@ -105,7 +105,7 @@ const getSystemPrompt = (
   instructions?: string
 ) => `Your name is Mistral Thing.
     The website you are on is https://mistral-thing.xyz
-    You are a helpful assistant that can help with tasks related to the user's life.
+    You are a helpful assistant that can help with tasks.
 
     ${nickname ? `The user prefers to be called ${nickname}.` : ""}
     ${biography ? `The user's biography is ${biography}.` : ""}
@@ -213,7 +213,8 @@ const titlePrompt = `\nc
                 - you will generate a short title based on the first message a user begins a conversation with
                 - ensure it is not more than 80 characters long
                 - the title should be a summary of the user's message
-                - do not use quotes or colons`;
+                - do not use quotes or colons
+                - this is the user's first message, so it should be a summary of the user's message`;
 
 export const generateTitle = internalAction({
   args: {
@@ -232,7 +233,6 @@ export const generateTitle = internalAction({
           { role: "system", content: titlePrompt },
           { role: "user", content },
         ],
-        temperature: 0.8,
       });
 
       console.log(result);
@@ -243,6 +243,10 @@ export const generateTitle = internalAction({
       });
     } catch (error) {
       console.error(error);
+      await ctx.runMutation(internal.threads.updateTitle, {
+        threadId,
+        title: "New Thread",
+      });
       throw new ConvexError({
         code: 500,
         message: "An error occurred while generating the title.",

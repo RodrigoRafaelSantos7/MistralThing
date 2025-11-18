@@ -28,7 +28,11 @@ export const getThreadById = query({
       });
     }
 
-    const thread = await ctx.db.get(threadId);
+    const thread = await ctx.db
+      .query("thread")
+      .withIndex("by_id", (q) => q.eq("_id", threadId))
+      .order("desc")
+      .unique();
 
     if (!thread) {
       throw new ConvexError({
@@ -79,6 +83,7 @@ export const getThreadBySlug = query({
     const thread = await ctx.db
       .query("thread")
       .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .order("desc")
       .unique();
 
     if (!thread) {
@@ -124,6 +129,7 @@ export const getAllThreadsForUserWithMessages = query({
     const threads = await ctx.db
       .query("thread")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .order("desc")
       .collect();
 
     const threadsWithMessages = await Promise.all(
@@ -304,7 +310,7 @@ export const create = mutation({
     return await ctx.db.insert("thread", {
       userId: user._id,
       slug,
-      status: "ready",
+      status: "submitted",
       updatedAt: Date.now(),
     });
   },
