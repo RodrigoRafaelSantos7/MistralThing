@@ -1,60 +1,73 @@
 "use client";
 
-import { createContext, useContext, useMemo } from "react";
+import { createContext, useContext } from "react";
 import { useParamsThreadSlug } from "@/hooks/use-params-thread-slug";
-import type { Thread } from "@/lib/threads-store/threads/provider";
-import { useThreads } from "@/lib/threads-store/threads/provider";
+import {
+  type ThreadWithMessages,
+  useThreads,
+} from "@/lib/threads-store/provider";
 
-type ThreadSessionContextType = {
+/**
+ * The context type for the threads provider.
+ */
+type CurrentThreadContextType = {
   /**
-   * The current thread
+   * The current thread (with messages).
    */
-  currentThread?: Thread;
+  currentThread?: ThreadWithMessages;
 };
 
-const ThreadSessionContext = createContext<
-  ThreadSessionContextType | undefined
+/**
+ * The context for the threads provider.
+ */
+const CurrentThreadContext = createContext<
+  CurrentThreadContextType | undefined
 >(undefined);
 
 /**
- * Provider for the chat session context
+ * The provider for the threads context.
  *
- * @param children - The children to render
- * @returns The chat session provider
+ * @param initialThreads - The initial threads (including messages) for the current user.
+ * @param children - The children to render.
+ *
+ * @returns The threads provider.
  */
-export function ThreadSessionProvider({
+export function CurrentThreadProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { threads } = useThreads();
   const slug = useParamsThreadSlug();
+  const { threads } = useThreads();
 
-  const currentThread = useMemo(
-    () => threads.find((t) => t.slug === slug),
-    [threads, slug]
-  );
+  const currentThread = threads.find((thread) => thread.slug === slug);
 
   return (
-    <ThreadSessionContext.Provider value={{ currentThread }}>
+    <CurrentThreadContext.Provider
+      value={{
+        currentThread,
+      }}
+    >
       {children}
-    </ThreadSessionContext.Provider>
+    </CurrentThreadContext.Provider>
   );
 }
 
 /**
- * Hook to use the thread session context
+ * Custom hook to access the current thread context.
+ *
+ * @throws {Error} If the component is not wrapped in a CurrentThreadProvider
  *
  * @returns The thread session context
  */
-export const useThreadSession = () => {
-  const context = useContext(ThreadSessionContext);
+export function useCurrentThread() {
+  const context = useContext(CurrentThreadContext);
 
   if (!context) {
     throw new Error(
-      "useThreadSession must be used within ThreadSessionProvider"
+      "useCurrentThread must be used within CurrentThreadProvider"
     );
   }
 
   return context;
-};
+}

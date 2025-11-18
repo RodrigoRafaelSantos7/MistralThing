@@ -1,5 +1,5 @@
 import { ConvexError, v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 import { authComponent } from "./auth";
 
 /**
@@ -28,7 +28,11 @@ export const getThreadById = query({
       });
     }
 
-    const thread = await ctx.db.get(threadId);
+    const thread = await ctx.db
+      .query("thread")
+      .withIndex("by_id", (q) => q.eq("_id", threadId))
+      .order("desc")
+      .unique();
 
     if (!thread) {
       throw new ConvexError({
@@ -79,6 +83,7 @@ export const getThreadBySlug = query({
     const thread = await ctx.db
       .query("thread")
       .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .order("desc")
       .unique();
 
     if (!thread) {
@@ -101,7 +106,14 @@ export const getThreadBySlug = query({
   },
 });
 
-export const getAllThreadsForUser = query({
+/**
+ * Retrieves all threads for a user with their messages .
+ *
+ * @returns All threads for the user with their messages
+ *
+ * @throws {ConvexError} 401 if user not found/not authenticated
+ */
+export const getAllThreadsForUserWithMessages = query({
   args: {},
   handler: async (ctx) => {
     const user = await authComponent.getAuthUser(ctx).catch(() => null);
@@ -117,9 +129,21 @@ export const getAllThreadsForUser = query({
     const threads = await ctx.db
       .query("thread")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .order("desc")
       .collect();
 
-    return threads;
+    const threadsWithMessages = await Promise.all(
+      threads.map(async (thread) => {
+        const messages = await ctx.db
+          .query("message")
+          .withIndex("by_thread", (q) => q.eq("threadId", thread._id))
+          .order("asc")
+          .collect();
+        return { ...thread, messages };
+      })
+    );
+
+    return threadsWithMessages;
   },
 });
 
@@ -139,8 +163,16 @@ export const update = mutation({
   args: {
     threadId: v.id("thread"),
     title: v.optional(v.string()),
+    status: v.optional(
+      v.union(
+        v.literal("ready"),
+        v.literal("streaming"),
+        v.literal("submitted"),
+        v.literal("error")
+      )
+    ),
   },
-  handler: async (ctx, { threadId, title }) => {
+  handler: async (ctx, { threadId, title, status }) => {
     const user = await authComponent.getAuthUser(ctx).catch(() => null);
 
     if (!user) {
@@ -170,46 +202,8 @@ export const update = mutation({
     }
 
     await ctx.db.patch(threadId, {
-      title,
-      updatedAt: Date.now(),
-    });
-  },
-});
-
-export const bump = mutation({
-  args: {
-    threadId: v.id("thread"),
-  },
-  handler: async (ctx, { threadId }) => {
-    const user = await authComponent.getAuthUser(ctx).catch(() => null);
-
-    if (!user) {
-      throw new ConvexError({
-        code: 401,
-        message: "User not found. Please login to continue.",
-        severity: "high",
-      });
-    }
-
-    const thread = await ctx.db.get(threadId);
-
-    if (!thread) {
-      throw new ConvexError({
-        code: 404,
-        message: "Thread not found. ",
-        severity: "high",
-      });
-    }
-
-    if (thread.userId !== user._id) {
-      throw new ConvexError({
-        code: 403,
-        message: "You are not authorized to access this thread.",
-        severity: "high",
-      });
-    }
-
-    await ctx.db.patch(threadId, {
+      title: title ?? thread.title,
+      status: status ?? thread.status,
       updatedAt: Date.now(),
     });
   },
@@ -258,5 +252,103 @@ export const remove = mutation({
     }
 
     await ctx.db.delete(threadId);
+  },
+});
+
+/**
+ * Updates the updatedAt timestamp of a thread.
+ *
+ * @param args.threadId - The ID of the thread
+ */
+export const bump = internalMutation({
+  args: {
+    threadId: v.id("thread"),
+  },
+  handler: async (ctx, { threadId }) => {
+    await ctx.db.patch(threadId, {
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/**
+ * Creates a new thread.
+ *
+ * @param args.slug - The slug of the thread
+ *
+ * @throws {ConvexError} 401 if user not found/not authenticated
+ * @throws {ConvexError} 400 if thread with this slug already exists
+ */
+export const create = mutation({
+  args: {
+    slug: v.string(),
+  },
+  handler: async (ctx, { slug }) => {
+    const user = await authComponent.getAuthUser(ctx).catch(() => null);
+
+    if (!user) {
+      throw new ConvexError({
+        code: 401,
+        message: "User not found. Please login to continue.",
+        severity: "high",
+      });
+    }
+
+    const existingThread = await ctx.db
+      .query("thread")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .unique();
+
+    if (existingThread) {
+      throw new ConvexError({
+        code: 400,
+        message: "Thread with this slug already exists.",
+        severity: "high",
+      });
+    }
+
+    return await ctx.db.insert("thread", {
+      userId: user._id,
+      slug,
+      status: "submitted",
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+/**
+ * Updates the status of a thread.
+ *
+ * @param args.threadId - The ID of the thread
+ * @param args.status - The status to update the thread to
+ */
+export const updateStatus = internalMutation({
+  args: {
+    threadId: v.id("thread"),
+    status: v.union(
+      v.literal("ready"),
+      v.literal("streaming"),
+      v.literal("submitted"),
+      v.literal("error")
+    ),
+  },
+  handler: async (ctx, { threadId, status }) => {
+    await ctx.db.patch(threadId, { status, updatedAt: Date.now() });
+  },
+});
+
+/**
+ * Updates the title of a thread.
+ *
+ * @param args.threadId - The ID of the thread
+ * @param args.title - The title to update the thread to
+ */
+export const updateTitle = internalMutation({
+  args: {
+    threadId: v.id("thread"),
+    title: v.string(),
+  },
+  handler: async (ctx, { threadId, title }) => {
+    await ctx.db.patch(threadId, { title, updatedAt: Date.now() });
   },
 });

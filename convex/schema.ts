@@ -40,7 +40,24 @@ export default defineSchema({
     title: v.optional(v.string()),
     slug: v.string(), // Used to identify the thread in the URL
     updatedAt: v.number(),
+    status: v.union(
+      v.literal("ready"),
+      v.literal("streaming"),
+      v.literal("submitted"),
+      v.literal("error")
+    ),
   })
     .index("by_user", ["userId"])
     .index("by_slug", ["slug"]),
+
+  message: defineTable({
+    threadId: v.id("thread"),
+    role: v.union(
+      v.literal("user"),
+      v.literal("assistant"),
+      v.literal("system")
+    ),
+    content: v.string(),
+    isStreaming: v.boolean(),
+  }).index("by_thread", ["threadId"]),
 });
